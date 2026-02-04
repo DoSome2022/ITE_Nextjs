@@ -1,4 +1,3 @@
-// app/actions/auth/login.ts
 "use server";
 
 import { signIn } from "@/auth";
@@ -11,6 +10,7 @@ const schema = z.object({
 });
 
 export async function serverLogin(formData: FormData) {
+  // 1. 驗證格式
   const data = schema.safeParse({
     username: formData.get("username")?.toString(),
     password: formData.get("password")?.toString(),
@@ -23,15 +23,15 @@ export async function serverLogin(formData: FormData) {
   const { username, password } = data.data;
 
   try {
-    // ⚠️ 這裡改為 redirect: false，並手動處理成功狀態
-    // 這樣可以避免 Server Action 為了跳轉而中斷，導致前端收不到回應
+    // 2. 執行登入
+    // redirect: false 很重要，讓前端來處理跳轉，避免 Server Action 被中斷
     await signIn("credentials", {
       username,
       password,
       redirect: false, 
     });
-    
-    // 如果沒報錯，代表登入成功
+
+    // 3. 回傳成功訊號
     return { success: true };
 
   } catch (error) {
@@ -43,8 +43,6 @@ export async function serverLogin(formData: FormData) {
           return { error: "登入發生未知錯誤" };
       }
     }
-    // 這裡通常不會跑到，因為我們設了 redirect: false
-    // 但為了保險起見，如果是 Next 的 Redirect 錯誤還是要拋出
     throw error;
   }
 }
