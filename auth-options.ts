@@ -161,8 +161,9 @@
 //   trustHost: true,
 // };
 
-// ./auth.config.ts
+// src/auth-options.ts (請確認檔名與引用一致)
 import type { NextAuthConfig } from "next-auth";
+import Google from "next-auth/providers/google"; // 👈 Google 可以放在這裡
 
 export enum UserRole {
   USER = "USER",
@@ -170,18 +171,24 @@ export enum UserRole {
   TEACHER = "TEACHER",
 }
 
-
 export const authConfig = {
-  
   pages: {
     signIn: "/login",
   },
   session: {
     strategy: "jwt",
   },
+  providers: [
+    // 1. Google Provider 放這裡 (Middleware 可見)
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true,
+    }),
+    // Credentials 不需要在這裡具體實作，留給 auth.ts 處理
+  ],
   callbacks: {
-     async jwt({ token, user, trigger, session }) {
-      // 處理更新 session 的情況 (可選)
+    async jwt({ token, user, trigger, session }) {
       if (trigger === "update" && session) {
         token = { ...token, ...session };
         return token;
@@ -190,23 +197,26 @@ export const authConfig = {
         token.id = user.id;
         token.email = user.email;
         // @ts-ignore
-        token.role = user.role || UserRole.USER; 
+        token.role = user.role || UserRole.USER;
         // @ts-ignore
         token.name = user.name;
+        // @ts-ignore
+        token.schoolId = user.schoolId; // 👈 確保這裡有把 user 的資料帶給 token
       }
       return token;
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
         // @ts-ignore
         session.user.role = token.role as string;
         // @ts-ignore
         session.user.name = token.name as string;
+        // @ts-ignore
+        session.user.schoolId = token.schoolId as string;
       }
       return session;
     },
   },
-  providers: [], // 這裡留空，Middleware 不需要知道具體的登入邏輯
 } satisfies NextAuthConfig;
