@@ -1,5 +1,7 @@
 // app/Posts/page.tsx (Server Component)
 
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { getPostAdmins } from "../actions/Admin_Post/post-admin";
 import Image from "next/image";
@@ -19,6 +21,8 @@ export default async function PostsPage() {
 
   // 正確提取 posts 陣列
   const { posts } = result.data;
+
+  console.log("posts:", posts,"-- End --");
 
   // 若無文章，可顯示友好提示
   if (posts.length === 0) {

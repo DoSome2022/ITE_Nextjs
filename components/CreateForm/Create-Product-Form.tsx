@@ -336,6 +336,7 @@ const Create_Product_Form = ({
   formData.append("referencedPosts", values.referencedPosts);
 }
 
+
     startTransition(async () => {
       try {
         const result = await CreateProductAction(formData);
@@ -353,6 +354,7 @@ const Create_Product_Form = ({
           setImagePreviews([]);
         }
       } catch (error) {
+        console.error(error);
         const errorMessage = error instanceof Error ? error.message : "提交失敗";
         user_Product_form.setError("root", { type: "manual", message: errorMessage });
         toast.error(errorMessage);
@@ -360,8 +362,13 @@ const Create_Product_Form = ({
     });
   };
 
+
+
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
+    <div className="container mx-auto p-4">
+  <div className="flex flex-col lg:flex-row gap-8">
+    {/* <div className="container mx-auto p-4 max-w-4xl"> */}
+    <div className="flex-1 min-w-0">
       {/* 進度條 */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
@@ -622,10 +629,69 @@ const Create_Product_Form = ({
               </Button>
             )}
           </div>
+
+
+
         </form>
       </Form>
+      
     </div>
+{/* 右側：Debug 面板 */}
+    {process.env.NODE_ENV === "development" && (
+      <div className="w-full lg:w-96 xl:w-[420px] lg:min-w-[380px] lg:max-w-md lg:sticky lg:top-6 lg:self-start">
+        <div className="p-6 bg-gray-50 border border-gray-300 rounded-lg shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-lg font-semibold text-gray-800">表單除錯資訊</h4>
+            <span className="text-xs text-gray-500">開發模式</span>
+          </div>
+
+          {/* 完整 values */}
+          <details open className="mb-5">
+            <summary className="font-semibold cursor-pointer text-blue-800 hover:text-blue-950">
+              目前表單值 (getValues)
+            </summary>
+            <pre className="mt-3 p-4 bg-gray-950 text-green-300 rounded text-sm font-mono overflow-auto max-h-[45vh]">
+              {JSON.stringify(user_Product_form.getValues(), null, 2)}
+            </pre>
+          </details>
+
+          {/* null 欄位 */}
+          <details className="mb-5">
+            <summary className="font-semibold cursor-pointer text-red-800 hover:text-red-950">
+              值為 null 的欄位
+            </summary>
+            <div className="mt-3 p-4 bg-gray-950 text-red-300 rounded text-sm font-mono overflow-auto max-h-48 whitespace-pre-wrap">
+              {(() => {
+                const values = user_Product_form.getValues();
+                const nullFields = Object.entries(values)
+                  .filter(([_, v]) => v === null)
+                  .map(([k]) => k);
+                return nullFields.length > 0
+                  ? nullFields.join("\n")
+                  : "目前沒有欄位為 null";
+              })()}
+            </div>
+          </details>
+
+          {/* 錯誤訊息 */}
+          {Object.keys(user_Product_form.formState.errors).length > 0 && (
+            <details>
+              <summary className="font-semibold cursor-pointer text-amber-800 hover:text-amber-950">
+                目前驗證錯誤
+              </summary>
+              <pre className="mt-3 p-4 bg-gray-950 text-amber-300 rounded text-sm font-mono overflow-auto max-h-[45vh]">
+                {JSON.stringify(user_Product_form.formState.errors, null, 2)}
+              </pre>
+            </details>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+</div>
   );
 };
+
+
 
 export default Create_Product_Form;

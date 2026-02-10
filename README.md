@@ -302,3 +302,16 @@ next -v 16.0.10 版本
 以及run build bug
 
 再改了login 方法 把auth.ts 以及./auth.config.ts middleware.ts 改了
+
+
+6－2－2026
+
+商品建立err
+
+
+10-2-2026
+
+修改了商品del
+商品索引顯示
+resend 更新中
+ui更新

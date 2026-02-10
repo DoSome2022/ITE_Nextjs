@@ -144,9 +144,9 @@ export default function ShopPagebyId() {
 
   console.log("getProduct : ", getProduct, "-- End --");
 
+  
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
-      <h1 className="text-3xl font-bold mb-6">課程詳情</h1>
+    <div className="container mx-auto p-4 max-w-6xl mt-5">
       {error && <div className="bg-red-50 text-red-600 p-3 rounded mb-4">{error}</div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -160,7 +160,7 @@ export default function ShopPagebyId() {
                 alt={getProduct.title}
                 width={600}
                 height={450}
-                className="w-full h-auto rounded-lg shadow-md object-cover"
+                className="w-full h-30 lg:h-auto rounded-lg shadow-md object-cover"
                 priority
               />
             ) : (
@@ -169,37 +169,13 @@ export default function ShopPagebyId() {
               </div>
             )}
           </div>
-
-          {/* 三欄資訊卡片 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-              <h4 className="font-semibold text-blue-900 mb-1">目標群眾</h4>
-              <p className="text-gray-700 whitespace-pre-line">
-                {getProduct.Target_Audience || '未提供'}
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
-              <h4 className="font-semibold text-green-900 mb-1">課程目標</h4>
-              <p className="text-gray-700 whitespace-pre-line">
-                {getProduct.Course_Objective || '未提供'}
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
-              <h4 className="font-semibold text-purple-900 mb-1">適用場景</h4>
-              <p className="text-gray-700 whitespace-pre-line">
-                {getProduct.Applicable_Scenarios || '未提供'}
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* 右側：詳情 + 課程 + 參考文章 + 影片 + 加入按鈕 */}
         <div className="space-y-6">
           <div>
             <h2 className="text-2xl font-semibold mb-2">{getProduct.title}</h2>
-            <p className="text-gray-600 mb-4">{getProduct.description}</p>
+            <p className="text-gray-600 mb-4 whitespace-pre-wrap">{getProduct.description}</p>
             <p className="text-2xl font-bold text-blue-600">HK${getProduct.real_price.toFixed(2)}</p>
           </div>
 
@@ -298,14 +274,14 @@ export default function ShopPagebyId() {
               </button>
             ) : (
               <>
-                <input
+                {/* <input
                   type="number"
                   value={quantity}
                   onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
                   min="1"
                   className="border rounded p-2 w-20 text-center"
                   disabled={isPending}
-                />
+                /> */}
                 <button
                   onClick={handleAddToCart}
                   disabled={isPending}
@@ -315,10 +291,34 @@ export default function ShopPagebyId() {
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
                 >
-                  {isPending ? '加入中...' : '加入課程'}
+                  {isPending ? '加入中...' : '個人課程可直接報讀'}
                 </button>
               </>
             )}
+          </div>
+
+          {/* 三欄資訊卡片 */}
+          <div className="grid gap-4 text-sm">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+              <h4 className="font-semibold text-blue-900 mb-1">目標群眾</h4>
+              <p className="text-gray-700 whitespace-pre-line">
+                {getProduct.Target_Audience || '未提供'}
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+              <h4 className="font-semibold text-green-900 mb-1">課程目標</h4>
+              <p className="text-gray-700 whitespace-pre-line">
+                {getProduct.Course_Objective || '未提供'}
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+              <h4 className="font-semibold text-purple-900 mb-1">適用場景</h4>
+              <p className="text-gray-700 whitespace-pre-line">
+                {getProduct.Applicable_Scenarios || '未提供'}
+              </p>
+            </div>
           </div>
         </div>
       </div>

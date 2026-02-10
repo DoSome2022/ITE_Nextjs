@@ -136,6 +136,7 @@ export default function ProductPage() {
     );
   }
 
+  
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       <h1 className="text-3xl font-bold mb-6">商品詳情</h1>
@@ -161,35 +162,13 @@ export default function ProductPage() {
               </div>
             )}
           </div>
-
-          {/* 三欄資訊 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h4 className="font-semibold text-blue-900 mb-1">目標觀眾</h4>
-              <p className="text-gray-700 whitespace-pre-line">
-                {getProduct.Target_Audience || '未提供'}
-              </p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <h4 className="font-semibold text-green-900 mb-1">課程目標</h4>
-              <p className="text-gray-700 whitespace-pre-line">
-                {getProduct.Course_Objective || '未提供'}
-              </p>
-            </div>
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <h4 className="font-semibold text-purple-900 mb-1">適用場景</h4>
-              <p className="text-gray-700 whitespace-pre-line">
-                {getProduct.Applicable_Scenarios || '未提供'}
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* 右側：詳情 + 課程 + 參考文章 + 影片 + 加入購物車 */}
         <div className="space-y-6">
           <div>
             <h2 className="text-2xl font-semibold mb-2">{getProduct.title}</h2>
-            <p className="text-gray-600 mb-4">{getProduct.description}</p>
+            <p className="text-gray-600 mb-4 whitespace-pre-wrap">{getProduct.description}</p>
             <p className="text-2xl font-bold text-blue-600">HK${getProduct.real_price.toFixed(2)}</p>
           </div>
 
@@ -293,6 +272,28 @@ export default function ProductPage() {
             >
               {isPending ? '加入中...' : '加入購物車'}
             </button>
+          </div>
+
+          {/* 三欄資訊 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h4 className="font-semibold text-blue-900 mb-1">目標觀眾</h4>
+              <p className="text-gray-700 whitespace-pre-line">
+                {getProduct.Target_Audience || '未提供'}
+              </p>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h4 className="font-semibold text-green-900 mb-1">課程目標</h4>
+              <p className="text-gray-700 whitespace-pre-line">
+                {getProduct.Course_Objective || '未提供'}
+              </p>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h4 className="font-semibold text-purple-900 mb-1">適用場景</h4>
+              <p className="text-gray-700 whitespace-pre-line">
+                {getProduct.Applicable_Scenarios || '未提供'}
+              </p>
+            </div>
           </div>
         </div>
       </div>

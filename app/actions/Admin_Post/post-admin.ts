@@ -379,6 +379,7 @@ export async function getPostAdmins({
         orderBy: { createdAt: "desc" },
       }),
       prisma.postAdmin.count({ where }),
+      
     ]);
 
     const formattedPosts = posts.map((post) => ({
