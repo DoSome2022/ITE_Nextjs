@@ -112,7 +112,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
       const callbackUrl = searchParams.get('callbackUrl') || '/';
       // 不要指定 callbackUrl
-      await signIn("google");
+      await signIn("google", { callbackUrl }); 
       // NextAuth 會回調到 /login，useEffect 會在 session 更新後導向
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Google 登入失敗";
@@ -200,8 +200,14 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
       {/* 忘記密碼 */}
       <div className="mt-4 text-center">
+        <div>
         <a href="/forgot-password" className="text-sm text-blue-400 hover:underline">
           忘記密碼？
+        </a>
+
+        </div>
+        <a href="/register" className="text-sm text-black-400 hover:underline">
+          沒有帳號？在這裹
         </a>
       </div>
     </div>

@@ -29,7 +29,7 @@ const user = await db.user.findUnique({
     const resend = new Resend(process.env.RESEND_API_KEY);
     const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
     await resend.emails.send({
-      from: "no-reply@yourdomain.com",
+      from: "no-reply@ite.edu.hk",
       to: email,
       subject: "重置您的密碼",
       html: `
