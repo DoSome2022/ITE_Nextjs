@@ -321,3 +321,11 @@ ui更新
 15/2/2026
 
 修改了google login bug
+
+
+16/2/2026
+
+改了數量bug
+checkout 的 !user 的判定 拿走看看
+
+

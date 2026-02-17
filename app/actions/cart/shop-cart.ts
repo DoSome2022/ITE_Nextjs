@@ -161,10 +161,10 @@ interface CartItem {
   id: string;
   cartId: string;
   productId: string;
-  quantity: number;
+  quantity: number | null;
   createdAt: Date;
   updatedAt: Date;
-  product: Product;
+  product: Product ;
 }
 
 export interface CartWithItems {
@@ -175,7 +175,9 @@ export interface CartWithItems {
   items: CartItem[];
 }
 
-export async function addToCart(productId: string, quantity: number): Promise<{ success: true }> {
+export async function addToCart(productId: string, 
+  // quantity: number
+): Promise<{ success: true }> {
   const session = await auth();
   if (!session?.user?.id) throw new Error('未授權');
 
@@ -247,14 +249,15 @@ export async function addToCart(productId: string, quantity: number): Promise<{ 
     if (existingItem) {
       await db.cartItem.update({
         where: { id: existingItem.id },
-        data: { quantity: existingItem.quantity + quantity },
+data: { quantity: (existingItem.quantity ?? 0) + 1 },
+
       });
     } else {
       await db.cartItem.create({
         data: {
           cartId: cart.id,
           productId,
-          quantity,
+          quantity :1,
         },
       });
     }
@@ -329,10 +332,12 @@ export async function createOrder(): Promise<{ orderId: string; total: number }>
 
   if (!cart || cart.items.length === 0) throw new Error('購物車為空');
 
+  // 計算總金額 (修復 quantity 可能為 null 的問題)
   const total = cart.items.reduce(
     (sum, item) => {
       if (!item.product) throw new Error(`產品 ${item.productId} 不存在`);
-      return sum + item.quantity * item.product.price;
+      const qty = item.quantity ?? 1; // 預設數量為 1
+      return sum + qty * item.product.price;
     },
     0
   );
@@ -344,8 +349,14 @@ export async function createOrder(): Promise<{ orderId: string; total: number }>
         total,
         items: {
           create: cart.items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
+            // 修復 1: 確保 quantity 有值
+            quantity: item.quantity ?? 1,
+            
+            // 修復 2: 使用 connect 語法正確關聯 Product
+            product: {
+              connect: { id: item.productId }
+            },
+            
             price: item.product.price,
           })),
         },
@@ -360,6 +371,7 @@ export async function createOrder(): Promise<{ orderId: string; total: number }>
     throw new Error('無法創建訂單');
   }
 }
+
 
 // app/actions/cart/shop-cart.ts
 export async function getCart(): Promise<CartWithItems | null> {

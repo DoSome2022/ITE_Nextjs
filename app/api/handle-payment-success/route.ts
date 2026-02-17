@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
       title: item.product.title,
       description: item.product.description ?? '',
       price: item.product.price,
-      total: item.product.price * item.quantity,
+      total: item.product.price * (item.quantity ?? 0),
       date: currentDate.toISOString(),
       client_id: userId,
     }));
@@ -124,7 +124,7 @@ const invoiceData = cart.items.map((item) => ({
   title: item.product.title,
   description: item.product.description ?? '',
   price: item.product.price,
-  total: item.product.price * item.quantity,
+  total: item.product.price * (item.quantity ?? 0),
   date: currentDate,
   student_id: userId,
   Invoice_id: createId(),
@@ -286,7 +286,7 @@ if (courseIds.length > 0) {
     console.log('購物車已清空');
 
     // ── 11. 建立 GTM purchase 事件 ───────────────────────
-    const totalAmount = cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    const totalAmount = cart.items.reduce((sum, item) => sum + item.product.price * (item.quantity ?? 0), 0);
     console.log('總金額:', totalAmount);
 
     const gtmItems = cart.items.map((item) => ({

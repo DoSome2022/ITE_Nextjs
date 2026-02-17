@@ -77,7 +77,7 @@ export default function ShopPagebyId() {
   const { shopId: productId } = useParams();
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [quantity, setQuantity] = useState(1);
+
   const [getProduct, setGetProduct] = useState<ProductDetail | null>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);

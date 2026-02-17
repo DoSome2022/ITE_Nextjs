@@ -4,29 +4,23 @@
 import { useEffect, useState, useTransition } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { getCart, removeFromCart } from '@/app/actions/cart/shop-cart';
+import { CartWithItems, getCart, removeFromCart } from '@/app/actions/cart/shop-cart';
 
 // 定義與 getCart 返回資料匹配的類型
-interface Product {
-  id: string;
-  title: string;
-  price: number;
-  real_price: number;
-}
+// interface Product {
+//   id: string;
+//   title: string;
+//   price: number;
+//   real_price: number;
+// }
 
-interface CartItem {
-  id: string;
-  quantity: number;
-  product: Product;
-}
+// interface CartItem {
+//   id: string;
+//   quantity: number;
+//   product: Product;
+// }
 
-interface CartWithItems {
-  id: string;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  items: CartItem[];
-}
+
 
 export default function CartPage() {
   const [cart, setCart] = useState<CartWithItems | null>(null);

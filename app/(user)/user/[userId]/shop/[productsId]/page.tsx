@@ -85,11 +85,12 @@ const formatTime = (time: string | null | undefined): string => {
 // === 主組件 ===
 export default function ProductPage() {
   const { productsId: productId, userId } = useParams();
-  const [quantity, setQuantity] = useState(1);
+  // const [quantity, setQuantity] = useState(1);
   const router = useRouter();
   const [getProduct, setGetProduct] = useState<ProductDetail | null>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+    const [isRegistrationClosed, setIsRegistrationClosed] = useState(false);
 
   useEffect(() => {
     const fetchProductDataLists = async (id: string) => {
@@ -110,7 +111,9 @@ export default function ProductPage() {
   const handleAddToCart = () => {
     startTransition(async () => {
       try {
-        await addToCart(productId as string, quantity);
+        await addToCart(productId as string, 
+          // quantity
+        );
         router.push(`/user/${userId}/cart`);
       } catch (err) {
         setError(err instanceof Error ? `加入購物車失敗：${err.message}` : '無法加入購物車');
@@ -136,10 +139,8 @@ export default function ProductPage() {
     );
   }
 
-  
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
-      <h1 className="text-3xl font-bold mb-6">商品詳情</h1>
+    <div className="container mx-auto p-4 max-w-6xl mt-5">
       {error && <div className="bg-red-50 text-red-600 p-3 rounded mb-4">{error}</div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -153,7 +154,7 @@ export default function ProductPage() {
                 alt={getProduct.title}
                 width={600}
                 height={450}
-                className="w-full h-auto rounded-lg shadow-md object-cover"
+                className="w-full h-30 lg:h-auto rounded-lg shadow-md object-cover"
                 priority
               />
             ) : (
@@ -164,7 +165,7 @@ export default function ProductPage() {
           </div>
         </div>
 
-        {/* 右側：詳情 + 課程 + 參考文章 + 影片 + 加入購物車 */}
+        {/* 右側：詳情 + 課程 + 參考文章 + 影片 + 加入按鈕 */}
         <div className="space-y-6">
           <div>
             <h2 className="text-2xl font-semibold mb-2">{getProduct.title}</h2>
@@ -175,8 +176,8 @@ export default function ProductPage() {
           {/* 課程資訊 */}
           {getProduct.Course && (
             <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
-              <p><span className="font-semibold">開始日期：</span> {formatDate(getProduct.Course.startDate)}</p>
-              <p><span className="font-semibold">結束日期：</span> {formatDate(getProduct.Course.endDate)}</p>
+              <p><span className="font-semibold">開始日期：</span> {formatDateWithDay(getProduct.Course.startDate)}</p>
+              <p><span className="font-semibold">結束日期：</span> {formatDateWithDay(getProduct.Course.endDate)}</p>
               <p><span className="font-semibold">上課日期：</span>
                 {getProduct.Course.Coursedates.length > 0
                   ? getProduct.Course.Coursedates.map(formatDateWithDay).join(', ')
@@ -197,17 +198,22 @@ export default function ProductPage() {
               ) : (
                 <p><span className="font-semibold">時間：</span>未設置</p>
               )}
+              {isRegistrationClosed && (
+                <p className="text-red-600 font-medium mt-3">
+                  ※ 報名截止日期為 {formatDateWithDay(getProduct.Course.startDate)}，目前已過截止時間
+                </p>
+              )}
             </div>
           )}
 
           {/* 新增：參考文章區塊 */}
-          <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 space-y-3">
-            <h3 className="text-lg font-semibold text-gray-900">參考文章</h3>
+          <div className="bg-gray-50 p-4 rounded-lg space-y-3 text-sm">
+            <h3 className="font-semibold text-gray-900">參考文章</h3>
             {getProduct.referencedPosts?.trim() ? (
-              <div className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
+              <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
                 {getProduct.referencedPosts.split('\n').map((line, index) => (
                   <p key={index} className="mb-2">
-                    {line.trim().startsWith('http') || line.trim().startsWith('https') ? (
+                    {line.trim().startsWith('http') ? (
                       <a
                         href={line.trim()}
                         target="_blank"
@@ -223,7 +229,7 @@ export default function ProductPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 italic text-sm">尚未提供參考文章</p>
+              <p className="text-gray-500 italic">尚未提供參考文章</p>
             )}
           </div>
 
@@ -251,44 +257,57 @@ export default function ProductPage() {
             </div>
           )}
 
-          {/* 加入購物車 */}
+          {/* 加入課程 */}
           <div className="flex items-center gap-3 pt-4 border-t">
-            <input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-              min="1"
-              className="border rounded p-2 w-20 text-center"
-              disabled={isPending}
-            />
-            <button
-              onClick={handleAddToCart}
-              disabled={isPending}
-              className={`flex-1 py-3 rounded font-medium transition ${
-                isPending
-                  ? 'bg-gray-400 cursor-not-allowed text-white'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-            >
-              {isPending ? '加入中...' : '加入購物車'}
-            </button>
+            {isRegistrationClosed ? (
+              <button
+                disabled
+                className="flex-1 py-3 rounded font-medium bg-gray-400 text-white cursor-not-allowed"
+              >
+                報名已截止
+              </button>
+            ) : (
+              <>
+                {/* <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                  min="1"
+                  className="border rounded p-2 w-20 text-center"
+                  disabled={isPending}
+                /> */}
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isPending}
+                  className={`flex-1 py-3 rounded font-medium transition ${
+                    isPending
+                      ? 'bg-gray-400 cursor-not-allowed text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  {isPending ? '加入中...' : '個人課程可直接報讀'}
+                </button>
+              </>
+            )}
           </div>
 
-          {/* 三欄資訊 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h4 className="font-semibold text-blue-900 mb-1">目標觀眾</h4>
+          {/* 三欄資訊卡片 */}
+          <div className="grid gap-4 text-sm">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+              <h4 className="font-semibold text-blue-900 mb-1">目標群眾</h4>
               <p className="text-gray-700 whitespace-pre-line">
                 {getProduct.Target_Audience || '未提供'}
               </p>
             </div>
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
               <h4 className="font-semibold text-green-900 mb-1">課程目標</h4>
               <p className="text-gray-700 whitespace-pre-line">
                 {getProduct.Course_Objective || '未提供'}
               </p>
             </div>
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
               <h4 className="font-semibold text-purple-900 mb-1">適用場景</h4>
               <p className="text-gray-700 whitespace-pre-line">
                 {getProduct.Applicable_Scenarios || '未提供'}

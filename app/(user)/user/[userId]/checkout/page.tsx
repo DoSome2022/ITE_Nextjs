@@ -7,39 +7,39 @@ import { loadStripe } from '@stripe/stripe-js';
 import axios, { AxiosError } from 'axios';
 import { toast } from 'react-toastify';
 import { useSession } from 'next-auth/react';
-import { getCart } from '@/app/actions/cart/shop-cart';
+import { CartWithItems, getCart } from '@/app/actions/cart/shop-cart';
 
-interface Product {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  real_price: number;
-  CourseProductTypeArray: string[];
-  CourseProductStatusArray: string[];
-  createdAt: Date;
-  updatedAt: Date;
-  IsPublic: boolean;
-  courseId: string | null;
-}
+// interface Product {
+//   id: string;
+//   title: string;
+//   description: string;
+//   price: number;
+//   real_price: number;
+//   CourseProductTypeArray: string[];
+//   CourseProductStatusArray: string[];
+//   createdAt: Date;
+//   updatedAt: Date;
+//   IsPublic: boolean;
+//   courseId: string | null;
+// }
 
-interface CartItem {
-  id: string;
-  cartId: string;
-  productId: string;
-  quantity: number;
-  createdAt: Date;
-  updatedAt: Date;
-  product: Product;
-}
+// interface CartItem {
+//   id: string;
+//   cartId: string;
+//   productId: string;
+//   quantity: number;
+//   createdAt: Date;
+//   updatedAt: Date;
+//   product: Product;
+// }
 
-interface CartWithItems {
-  id: string;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  items: CartItem[];
-}
+// interface CartWithItems {
+//   id: string;
+//   userId: string;
+//   createdAt: Date;
+//   updatedAt: Date;
+//   items: CartItem[];
+// }
 
 if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
   throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not defined');
@@ -94,7 +94,7 @@ export default function CheckoutPage() {
       .map((item) => ({
         name: item.product.title,
         real_price: item.product.real_price,
-        quantity: item.quantity,
+        quantity: item.quantity ?? 0,
         productId: item.productId,
       }))
       .filter((item, _) => {
@@ -130,8 +130,7 @@ export default function CheckoutPage() {
     startTransition(async () => {
       setError(null);
       try {
-        // ← 刪除未使用的 total
-        // const total = items.reduce(...);
+
 
         if (paymentMethod === 'stripe') {
           const response = await axios.post('/api/CheckoutSessions', { items, userId });
@@ -162,7 +161,10 @@ export default function CheckoutPage() {
   if (status === 'unauthenticated') return <div>請先登入</div>;
 
   // ← 保留 UI 用的 total
-  const total = cart.items.reduce((sum, item) => sum + item.quantity * item.product.real_price, 0);
+  const total = cart.items.reduce(
+  (sum, item) => sum + (item.quantity ?? 0) * item.product.real_price,
+  0
+);
 
   return (
     <div className="container mx-auto p-4">
@@ -172,7 +174,7 @@ export default function CheckoutPage() {
         {cart.items.map((item) => (
           <div key={item.id} className="flex justify-between mb-2">
             <span>{item.product.title} (x{item.quantity})</span>
-            <span>${(item.quantity * item.product.real_price).toFixed(2)}</span>
+            <span>${((item.quantity ?? 0) * item.product.real_price).toFixed(2)}</span>
           </div>
         ))}
         <div className="font-bold mt-2">總計: ${total.toFixed(2)}</div>
