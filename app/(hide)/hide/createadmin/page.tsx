@@ -1,11 +1,11 @@
 "use client";
 
-import CreateAdminForm from "@/components/CreateForm/Create-MainAdmin-Form";
+// import CreateAdminForm from "@/components/CreateForm/Create-MainAdmin-Form";
 
 const CreateMainAdminPage = () => {
   return (
     <div>
-      <CreateAdminForm />
+      {/* <CreateAdminForm /> */}
     </div>
   );
 };

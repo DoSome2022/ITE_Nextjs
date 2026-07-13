@@ -92,8 +92,8 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     } else {
       await update();
       toast.success("登入成功");
-      const callbackUrl = searchParams.get('callbackUrl') || '/';
-      router.replace(callbackUrl);
+      // const callbackUrl = searchParams.get('callbackUrl') || '/';
+      // router.replace(callbackUrl);
     }
   } catch (err) {
     // 捕捉 Server Action 找不到 (404) 或其他網絡錯誤
