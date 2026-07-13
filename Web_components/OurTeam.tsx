@@ -20,7 +20,7 @@ export default function OurTeam() {
                     <div className="flex justify-center">
                       <Image src={WaiLung} height="150" width="150"  alt="" />
                     </div>
-                    <h3 className="pt-3 text-2xl font-extrabold text-cyan-700">Mr. Wai Lung</h3>
+                    <h3 className="pt-3 text-2xl font-extrabold text-cyan-700">Mr. Aaron Wai</h3>
                     <h5 className="text-[14px] text-gray-600">Master of Science of Electrical Engineering, Polytechnic University of New York</h5>
                     <h5 className="text-[14px] text-gray-600">Master of Art of Computer Science, Queens College, City University of New York</h5>
                     <h5 className="text-[14px] text-gray-600">Bachelor of Engineering of Electrical Engineering, City University of New York</h5>

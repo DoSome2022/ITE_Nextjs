@@ -238,11 +238,12 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image"; // 導入 Next.js 的 Image 組件
 
-import { createChat } from "@n8n/chat";
-import "@n8n/chat/style.css";
+// import { createChat } from "@n8n/chat";
+// import "@n8n/chat/style.css";
+import WhatsAppButton from "@/components/Whatsapp";
 
 // 導入圖片資源
-import ITELOGO from "@/public/Logo_White.png";
+import ITELOGO from "@/public/Logo_Blue.png";
 import { UserRole } from "@/auth-options";
 
 export default function Navbar() {
@@ -254,43 +255,46 @@ export default function Navbar() {
 
   // 定義不同角色的導航項目
   const adminNavItems = [
-    { name: "帳目", href: "/admin/Accounts" },
-    { name: "課程列表", href: "/admin/CourseLists" },
-    { name: "產品列表", href: "/admin/ProductLists" },
-    { name: "教師列表", href: "/admin/TeacherLists" },
-    { name: "使用者列表", href: "/admin/UserLists" },
-    { name: "狀態列表", href: "/admin/StatueLists" },
-    { name: "科目清單", href: "/admin/TypeLists" },
-    { name: "關鍵字清單", href: "/admin/HeaderTypeLists" },
-    { name: "AdminLOG", href: "/admin/AdminLog" },
-    { name: "特別程程列表", href: "/admin/SpecialCourseLists" },
-    { name: "POST列表", href: "/admin/PostLists" },
+    { name: "帳目", engname: "", href: "/admin/Accounts" },
+    { name: "課程列表", engname: "", href: "/admin/CourseLists" },
+    { name: "產品列表", engname: "", href: "/admin/ProductLists" },
+    { name: "教師列表", engname: "", href: "/admin/TeacherLists" },
+    { name: "使用者列表", engname: "", href: "/admin/UserLists" },
+    { name: "狀態列表", engname: "", href: "/admin/StatueLists" },
+    { name: "科目清單", engname: "", href: "/admin/TypeLists" },
+    { name: "關鍵字清單", engname: "", href: "/admin/HeaderTypeLists" },
+    { name: "AdminLOG", engname: "", href: "/admin/AdminLog" },
+    { name: "特別程程列表", engname: "", href: "/admin/SpecialCourseLists" },
+    { name: "POST列表", engname: "", href: "/admin/PostLists" },
   ];
 
   const teacherNavItems = teacherId
     ? [
-        { name: "帳戶", href: `/teacher/${teacherId}/Accounts` },
-        { name: "日曆", href: `/teacher/${teacherId}/calendar` },
-        { name: "課程列表", href: `/teacher/${teacherId}/CourseLists` },
-        { name: "教師教材列表", href: `/teacher/${teacherId}/TeachingMaterialsLists` },
-        { name: "科目清單", href: `/teacher/${teacherId}/TypesLists` },
+        { name: "帳戶", engname: "", href: `/teacher/${teacherId}/Accounts` },
+        { name: "日曆", engname: "", href: `/teacher/${teacherId}/calendar` },
+        { name: "課程列表", engname: "", href: `/teacher/${teacherId}/CourseLists` },
+        { name: "教師教材列表", engname: "", href: `/teacher/${teacherId}/TeachingMaterialsLists` },
+        { name: "科目清單", engname: "", href: `/teacher/${teacherId}/TypesLists` },
       ]
     : [];
 
   const userNavItems = userId
     ? [
-        { name: "課程", href: `/user/${userId}/shop` },
+        { name: "課程", engname: "", href: `/user/${userId}/shop` },
         // { name: "日曆", href: `/user/${userId}/Calendar` },
-        { name: "課程列表", href: `/user/${userId}/CourseLists` },
-        { name: "願望清單", href: `/user/${userId}/cart` },
+        { name: "課程列表", engname: "", href: `/user/${userId}/CourseLists` },
+        { name: "心儀課程", engname: "", href: `/user/${userId}/cart` },
       ]
     : [];
 
   const publicNavItems = [
-    { name: "課程", href: "/" },
-    { name: "登錄", href: "/login" },
-    { name: "註冊", href: "/register" },
-    { name: "關於ITE", href: "/about" },
+    { name: "課程總覽", engname: "COURSE", href: "/" },
+    { name: "最新消息", engname: "NEWS", href: "/Posts" },
+    { name: "教育團隊", engname: "OUR TEAM", href: "/ourteam" },
+    { name: "關於我們", engname: "About Us", href: "/about" },
+    { name: "登錄", engname: "", href: "/login" },
+    { name: "註冊", engname: "", href: "/register" },
+    { name: "", engname: "", href: "", isCustom: true, component: <WhatsAppButton /> },
   ];
 
   // 根據 session 和角色選擇導航項目
@@ -316,44 +320,50 @@ export default function Navbar() {
       : "/";
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/login" });
+    await signOut({ callbackUrl: "/" });
   };
 
-  useEffect(() => {
-    // n8n 聊天功能初始化
-    createChat({
-      webhookUrl: "https://n8n.cx/webhook/39c0161e-b6d4-4d1a-8b3d-98e17dbb18e0/chat",
-      webhookConfig: {
-        method: "POST",
-        headers: {},
-      },
-      target: "#n8n-chat",
-      mode: "window",
-      chatInputKey: "chatInput",
-      chatSessionKey: "sessionId",
-      loadPreviousSession: true,
-      metadata: {},
-      showWelcomeScreen: false,
-      defaultLanguage: "en",
-      initialMessages: ["您好! 👋 請問有什麼服務想查詢？"],
-      i18n: {
-        en: {
-          title: "",
-          subtitle: "",
-          footer: "",
-          getStarted: "New Conversation",
-          inputPlaceholder: "請在此輸入文字..",
-          closeButtonTooltip: "",
-        },
-      },
-      enableStreaming: false,
-    });
-  }, []);
+  // useEffect(() => {
+  //   // n8n 聊天功能初始化
+  //   createChat({
+  //     webhookUrl: "https://n8n.cx/webhook/39c0161e-b6d4-4d1a-8b3d-98e17dbb18e0/chat",
+  //     webhookConfig: {
+  //       method: "POST",
+  //       headers: {},
+  //     },
+  //     target: "#n8n-chat",
+  //     mode: "window",
+  //     chatInputKey: "chatInput",
+  //     chatSessionKey: "sessionId",
+  //     loadPreviousSession: true,
+  //     metadata: {},
+  //     showWelcomeScreen: false,
+  //     defaultLanguage: "en",
+  //     initialMessages: ["您好! 👋 請問有什麼服務想查詢？"],
+  //     i18n: {
+  //       en: {
+  //         title: "",
+  //         subtitle: "",
+  //         footer: "",
+  //         getStarted: "New Conversation",
+  //         inputPlaceholder: "請在此輸入文字..",
+  //         closeButtonTooltip: "",
+  //       },
+  //     },
+  //     enableStreaming: false,
+  //   });
+  // }, []);
 
   return (
-    <nav className="bg-slate-900 text-white shadow-lg">
+    <>
+    {(status === "unauthenticated" || session?.user?.role === UserRole.USER) && (
+    <WhatsAppButton />
+  )}
+    <nav className="sticky top-0 bg-white/90 backdrop-blur-sm z-49">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between items-center h-16">
+          
+          
           {/* Logo */}
           <div className="flex items-center">
             <Link href={logoHref} className="text-xl font-bold">
@@ -373,15 +383,18 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
+                className="px-3 py-2 rounded-md text-sm font-medium"
               >
-                {item.name}
+                <div className="text-left text-sm font-medium text-gray-700 hover:text-blue-700 ">
+                <span className="block">{item.engname}</span>
+                <span className="block">{item.name}</span>
+              </div>
               </Link>
             ))}
             {status === "authenticated" && (
               <button
                 onClick={handleSignOut}
-                className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
+                className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-300"
               >
                 登出
               </button>
@@ -392,7 +405,7 @@ export default function Navbar() {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-700"
+              className="inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-300"
             >
               <span className="sr-only">開啟主菜單</span>
               <svg
@@ -430,7 +443,7 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700"
+                className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-300"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.name}
@@ -439,7 +452,7 @@ export default function Navbar() {
             {status === "authenticated" && (
               <button
                 onClick={handleSignOut}
-                className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700"
+                className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-300"
               >
                 登出
               </button>
@@ -449,7 +462,9 @@ export default function Navbar() {
       )}
 
       {/* n8n 聊天窗口容器 */}
-      <div id="n8n-chat" />
+       {/* <div id="n8n-chat" /> */}
+      
     </nav>
+    </>
   );
 }

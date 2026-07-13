@@ -22,8 +22,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ITE",
-  description: "探索 ITE 的優質課程和服務",
+  title: '關於我們 | 宏業教育中心 InnoTrendEDU - 專業IT與AI科技培訓',
+  description: '了解宏業教育中心 (InnoTrendEDU) 的創新教育理念。我們擁有15年以上經驗的資深導師團隊，提供AI、Python、Web全棧開發等實戰課程。作為NITTP認可培訓機構，我們致力於孕育未來IT領袖，助企業與個人提升競爭力。',
+  keywords: ['宏業教育中心', 'InnoTrendEDU', 'IT培訓', 'AI課程', 'Python教學', 'Web全棧開發', 'NITTP資助課程', '企業IT培訓', '香港IT課程']
 };
 
 export default function RootLayout({
@@ -38,6 +39,7 @@ export default function RootLayout({
   return (
     <html lang="zh-HK">
       <head>
+
         <link rel="icon" type="image/x-icon" href="/favicon.ico?v=1" />
         <link rel="apple-touch-icon" href="/favicon.ico?v=1" />
 
@@ -59,6 +61,54 @@ export default function RootLayout({
             });
           `}
         </Script>
+        
+
+{/* Meta Pixel Code */}
+<Script id="fb-pixel" strategy="afterInteractive">
+  {`
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1302329258473984');
+    fbq('track', 'PageView');
+  `}
+</Script>
+
+{/* Noscript 部分 */}
+<noscript>
+  <img
+    height="1"
+    width="1"
+    style={{ display: 'none' }}
+    src="https://www.facebook.com/tr?id=1302329258473984&ev=PageView&noscript=1"
+  />
+</noscript>
+{/* End of Meta Pixel Code */}
+        
+        
+        {/* Google tag (gtag.js) */}
+<Script
+  async
+  src="https://www.googletagmanager.com/gtag/js?id=G-VLPS5H3QS4"
+/>
+<Script id="google-tag">
+  {`
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VLPS5H3QS4');
+  `}
+</Script>
+        
+
+
+
+
       </head>
 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>

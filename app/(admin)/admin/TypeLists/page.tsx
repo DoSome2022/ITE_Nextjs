@@ -127,14 +127,22 @@ const TypeListsPage = () => {
                     <span className="text-base font-medium">{typeitem.typename}</span>
                     <div className="text-sm text-gray-400">作者: {typeitem.author}</div>
                   </div>
-                  <button
-                    onClick={() => handleDelete(typeitem.id)}
-                    disabled={isPending}
-                    className="px-3 py-1 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition"
-                  >
-                    {isPending ? "刪除中..." : "刪除"}
-                  </button>
-                </div>
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/admin/TypeLists/EditType/${typeitem.id}`}
+                      className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition"
+                    >
+                      編輯
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(typeitem.id)}
+                      disabled={isPending}
+                      className="px-3 py-1 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition"
+                    >
+                      {isPending ? "刪除中..." : "刪除"}
+                    </button>
+                  </div>
+                   </div>  
               ))}
             </div>
           )}
@@ -161,6 +169,7 @@ const TypeListsPage = () => {
               下一頁
             </button>
           </div>
+          
         )}
       </div>
     </div>

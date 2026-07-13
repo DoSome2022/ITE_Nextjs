@@ -1,9 +1,10 @@
-'use client';
-
+import { Metadata } from "next";
 import { ChevronRight } from 'lucide-react';
+
 import Link from 'next/link'
 import Image from 'next/image'
-
+import Footer from '@/components/Footer';
+import GoogleMap from '@/components/GoogleMap';
 import banner from '@/public/banner.jpg'
 import b1 from '@/public/b1.png'
 import b2 from '@/public/b2.png'
@@ -12,17 +13,13 @@ import core from '@/public/core.png'
 import Mr_Aaron from '@/public/Teacher_WaiLung.webp'
 import Mr_Honcy from '@/public/Teacher_HoncyLee.webp'
 import Mr_Eric from '@/public/Teacher_Eric.png'
-import ITEFooter from '@/components/Footer';
-import ITEGoogleMap from '@/components/GoogleMap';
-
-
 
 
 // 教師團隊數據（已加入中文職稱）
 const teamMembers = [
   {
     id: 1,
-    name: "Mr. Aaron Lung",
+    name: "Mr. Aaron Wai",
     avatar: Mr_Aaron,
     title: "跨領域科技與管理講師", // 新增中文職稱
     bio: "With a multidisciplinary background that bridges tech, finance, sales, and leadership, he brings hands-on corporate experience from building systems, managing teams, and scaling businesses in Asia, all while focusing on practical teaching approaches that emphasize job-ready skills in web development, automation, and data analysis."
@@ -43,9 +40,24 @@ const teamMembers = [
   },
 ];
 
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: '關於我們 | 宏業教育中心 InnoTrendEDU - 專業IT與AI科技培訓',
+    description: '了解宏業教育中心 (InnoTrendEDU) 的創新教育理念。我們擁有15年以上經驗的資深導師團隊，提供AI、Python、Web全棧開發等實戰課程。作為NITTP認可培訓機構，我們致力於孕育未來IT領袖，助企業與個人提升競爭力。',
+    keywords: ['宏業教育中心', 'InnoTrendEDU', 'IT培訓', 'AI課程', 'Python教學', 'Web全棧開發', 'NITTP資助課程', '企業IT培訓', '香港IT課程'],
+    openGraph: {
+    title: '關於我們 | 宏業教育中心 InnoTrendEDU',
+    description: '15年+資深師資，提供AI、Python及Web開發實戰課程，獲NITTP政府資助認可，助您與企業掌握前沿科技。',
+    url: 'https://ite.edu.hk/about',
+    siteName: '宏業教育中心 InnoTrendEDU',
+    locale: 'zh_HK',
+    type: 'website',
+    },
+  };
+}
 
 export default function ITEEducationCenter() {
-  // const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const email = "info@ite.edu.hk";
 
   return (
     <div className="min-h-screen bg-white text-gray-800">
@@ -153,10 +165,18 @@ export default function ITEEducationCenter() {
           </button>
           </Link>
 
-          {/* 客製化 Button */}
+          {/* 個人客製化化 Button - WhatsApp */}
           <Link href='https://wa.me/51001888'>
           <button className="px-5 py-2 border-cyan-700  border-2 text-gray-800 rounded-3xl flex items-center gap-2 hover:bg-cyan-800 hover:text-white transition-colors">
-            <span>索取企業客製化方案 / 報價</span>
+            <span>個人客製化方案 / 報價</span>
+            <ChevronRight size={16} />
+          </button>
+          </Link>
+
+          {/* 企業客製化 Button - Email */}
+          <Link href={`mailto:${email}`}>
+          <button className="px-5 py-2 border-cyan-700  border-2 text-gray-800 rounded-3xl flex items-center gap-2 hover:bg-cyan-800 hover:text-white transition-colors">
+            <span>企業客製化方案 / 報價</span>
             <ChevronRight size={16} />
           </button>
           </Link>
@@ -270,7 +290,24 @@ export default function ITEEducationCenter() {
         </div>
       </section>
 
-
+      {/* 合作機構區 */}
+      {/* <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h2 className="text-5xl font-light text-gray-400 mb-2 text-center">Previous Partner Organization</h2>
+        <h3 className="text-2xl font-semibold text-gray-700 mb-8 text-center">過往曾經合作機構</h3>
+        <div className="flex flex-wrap justify-center gap-8">
+          {partners.map((partner) => (
+            <div key={partner.id} className="w-24 h-12 overflow-hidden flex items-center justify-center">
+              <Image 
+                src={partner.logo} 
+                alt={partner.name} 
+                width={100}
+                height={100}
+                className="w-full h-full object-contain opacity-20 hover:opacity-100 transition-opacity"
+              />
+            </div>
+          ))}
+        </div>
+      </section> */}
 
       {/* 教育團隊區（已加入中文職稱） */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -309,8 +346,8 @@ export default function ITEEducationCenter() {
         </div>
       </section>
 
-      <ITEGoogleMap/>
-      <ITEFooter/>
+      <GoogleMap/>
+      <Footer/>
     </div>
   );
 }

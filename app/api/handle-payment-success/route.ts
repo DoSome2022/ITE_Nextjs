@@ -118,6 +118,8 @@ export async function POST(req: NextRequest) {
     });
     console.log('Accounts 寫入完成');
 
+
+
     // ── 5. 建立 Invoice ───────────────────────────────────
 const invoiceData = cart.items.map((item) => ({
   studentname: username,
@@ -141,6 +143,59 @@ const invoiceData = cart.items.map((item) => ({
       skipDuplicates: true,
     });
     console.log('Invoice 寫入完成');
+    console.log('Invoice 寫入完成');
+
+    // ═══════════════════════════════════════════
+    // 🔥【新增】步驟 5.5：建立 Order 記錄
+    // ═══════════════════════════════════════════
+    console.log('開始建立 Order...');
+    const orderTotal = cart.items.reduce(
+      (sum, item) => sum + item.product.price * item.quantity, 
+      0
+    );
+
+    const order = await prisma.order.create({
+      data: {
+        userId,
+        total: orderTotal,
+        status: 'PAID',
+        paymentId: sessionId,
+        items: {
+          create: cart.items.map((item) => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            price: item.product.price,
+          })),
+        },
+      },
+    });
+    console.log('Order 建立完成, ID:', order.id);
+    // ═══════════════════════════════════════════
+   console.log('Order 建立完成, ID:', order.id);
+
+    // ═══════════════════════════════════════════
+    // 🔥【新增】發送確認郵件（不阻塞流程）
+    // ═══════════════════════════════════════════
+    const { sendOrderConfirmationEmail } = await import('@/app/actions/email/send-order-confirmation');
+    sendOrderConfirmationEmail({ 
+      orderId: order.id, 
+      userId 
+    }).catch(err => {
+      console.error('發送確認郵件失敗（非致命）:', err);
+    });
+    // ═══════════════════════════════════════════
+
+    // ═══════════════════════════════════════════
+    // 🔥【新增】發送通知郵件給公司（不阻塞流程）
+    // ═══════════════════════════════════════════
+    const { sendCompanyNotification } = await import('@/app/actions/email/send-company-notification');
+    sendCompanyNotification({
+      orderId: order.id,
+      userId,
+    }).catch(err => {
+      console.error('發送公司通知失敗（非致命）:', err);
+    });
+    // ═══════════════════════════════════════════
 
     // ── 6. 分類 courseIds & specialCourseIds ───────────────
     const courseIds: string[] = [];
@@ -319,6 +374,7 @@ if (courseIds.length > 0) {
     // ── 12. 回傳結果 ─────────────────────────────────────
     const response = {
       success: true,
+      orderId: order.id,
       gtmEvent,
       enrolledCourses: courseIds,
       enrolledSpecialCourses: specialCourseIds,

@@ -38,7 +38,7 @@
 //   return NextResponse.json({ error: '方法不允許' }, { status: 405 });
 // }
 
-
+// app/api/product/Get_Product_Lists/route.ts
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 

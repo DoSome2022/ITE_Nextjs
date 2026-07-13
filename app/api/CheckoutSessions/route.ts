@@ -26,6 +26,7 @@ interface CheckoutItem {
   name: string;
   real_price: number;
   quantity: number;
+  productId: string;
 }
 
 interface RequestBody {
@@ -121,7 +122,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       mode: 'payment',
       success_url: successUrl,
       cancel_url: cancelUrl,
-      metadata: { userId },
+      metadata: { 
+        userId,
+            // 加入商品資訊，方便 webhook 或 success handler 使用
+        items: JSON.stringify(items.map(i => ({ 
+          productId: i.productId, 
+          quantity: i.quantity 
+        }))),
+      },
     });
 
     return NextResponse.json({ id: session.id }, { status: 200 });

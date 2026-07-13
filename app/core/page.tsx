@@ -1,8 +1,5 @@
-'use client';
-
-import ITEFooter from "@/components/Footer";
-import ITEnav from "@/components/Nav";
-
+import type { Metadata } from "next";
+import Footer from '@/components/Footer';
 
 // 定義課程數據數組
 const coreCourses = [
@@ -147,12 +144,49 @@ const coreCourses_point = [
   }
 ];
 
+export const metadata: Metadata = {
+  // Title: 針對企業痛點 + 核心服務 + 價格誘因 (資助)
+  title: '核心課程體系 | 企業IT培訓與數碼轉型 | NITTP資助最高50% - 宏業教育中心 InnoTrendEDU',
+  
+  // Description: 強調 ROI (投入產出比)，將熱門課程 (AI, Cyber, Python) 與政府資助結合
+  description: 'InnoTrendEDU 核心課程助企業以 50% 成本換取 100% 數碼轉型成果。提供 AI 人工智能、網絡安全 (CyberSecurity)、Python 數據分析、Web 開發及 VR 培訓。獲 NITTP 政府資助認可，支援企業包班、上門培訓及客製化方案，解決重複性工作與資安隱患。',
+  
+  // Keywords: 混合技術名詞與商業應用場景
+  keywords: [
+    // 核心服務
+    '企業IT培訓', '數碼轉型', 'NITTP資助', '客製化培訓', '上門電腦課程',
+    // 熱門技術領域
+    'AI人工智能應用', 'Generative AI', 'CyberSecurity', '網絡安全意識', 
+    'Python數據分析', 'Excel自動化', 'Power BI', 'Web Development', 
+    'VR遊戲開發', '系統架構', '工作流程自動化'
+  ],
+
+  // Canonical URL
+  alternates: {
+    canonical: 'https://ite.edu.hk/core',
+  },
+
+  // Open Graph: 適合分享給老闆或 HR 看的內容
+  openGraph: {
+    title: 'InnoTrendEDU 企業核心課程 | AI、資安與數據分析實戰培訓 (獲政府資助)',
+    description: '別讓重複工作與資安隱患拖慢發展。ITE 提供客製化企業培訓，涵蓋 AI、Python 自動化、網絡安全等。符合 NITTP 資格，企業可獲 50% 學費資助。',
+    url: 'https://ite.edu.hk/core',
+    siteName: '宏業教育中心 ITE',
+    locale: 'zh_HK',
+    type: 'website',
+  },
+
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'InnoTrendEDU 企業核心課程 | 50% 政府資助數碼轉型培訓',
+    description: '專為企業打造的實戰課程：AI 應用、網絡安全、Python 數據分析。立即申請 NITTP 資助。',
+  },
+};
+
 export default function CorePage() {
   return (
-    <>
-      {/* 導航欄 */}
-      <ITEnav />
-      
+    <>      
       {/* 核心課程體系區 */}
       <section className="max-w-7xl mx-auto px-20 py-12 bg-gray-50 rounded-xl my-8">
         <h1 className="text-4xl font-light text-gray-400 mb-2 text-center">Core Curriculum System</h1>
@@ -278,7 +312,7 @@ export default function CorePage() {
         </div>
       </section>
       
-      <ITEFooter />
+      <Footer />
     </>
   );
 }

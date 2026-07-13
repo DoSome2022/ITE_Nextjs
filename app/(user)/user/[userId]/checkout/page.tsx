@@ -77,11 +77,6 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (userId !== session?.user?.id) {
-      setError('無權操作：用戶 ID 不匹配');
-      toast.error('無權操作：用戶 ID 不匹配');
-      return;
-    }
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(userId)) {
@@ -130,8 +125,6 @@ export default function CheckoutPage() {
     startTransition(async () => {
       setError(null);
       try {
-        // ← 刪除未使用的 total
-        // const total = items.reduce(...);
 
         if (paymentMethod === 'stripe') {
           const response = await axios.post('/api/CheckoutSessions', { items, userId });

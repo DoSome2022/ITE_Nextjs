@@ -139,14 +139,14 @@ export default function ProductPage() {
   
   return (
     <div className="container mx-auto p-4 max-w-6xl">
-      <h1 className="text-3xl font-bold mb-6">商品詳情</h1>
+      <p className="text-3xl font-bold mb-6"></p>
       {error && <div className="bg-red-50 text-red-600 p-3 rounded mb-4">{error}</div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* 左側：圖片 + 三欄資訊 */}
+        {/* 左側 */}
         <div className="space-y-6">
           {/* 主圖 */}
-          <div>
+          {/* <div>
             {getProduct.Product_Img.length > 0 ? (
               <Image
                 src={getProduct.Product_Img[0].img_url}
@@ -161,6 +161,101 @@ export default function ProductPage() {
                 <span className="text-gray-500">無圖片</span>
               </div>
             )}
+          </div> */}
+          {/* YouTube 影片播放器（僅顯示第一部）*/}
+          {videos.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Play className="w-5 h-5" /> 課程影片
+              </h3>
+
+              <div className="relative bg-black rounded-lg overflow-hidden">
+                {firstVideoId ? (
+                  <YouTube
+                    videoId={firstVideoId}
+                    opts={opts}
+                    className="aspect-video"
+                    iframeClassName="w-full h-full"
+                  />
+                ) : (
+                  <div className="bg-gray-800 text-white flex items-center justify-center h-80 rounded">
+                    無法載入影片
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          {/* 三欄資訊卡片 */}
+          <div className="grid gap-3 text-sm">
+            {/* 目標群眾 */}
+            <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs">
+              <h4 className="font-medium text-gray-800 mb-2 text-base">適合人士</h4>
+              <p className="text-gray-600 whitespace-pre-line">
+                {getProduct.Target_Audience || '未提供'}
+              </p>
+            </div>
+
+            {/* 課程目標 */}
+            <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs">
+              <h4 className="font-medium text-gray-800 mb-2 text-base">你將帶走什麼？</h4>
+              <p className="text-gray-600 whitespace-pre-line">
+                {getProduct.Course_Objective || '未提供'}
+              </p>
+            </div>
+
+            {/* 適用場景 */}
+            <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs">
+              <h4 className="font-medium text-gray-800 mb-2 text-base">實戰地方</h4>
+              <p className="text-gray-600 whitespace-pre-line">
+                {getProduct.Applicable_Scenarios || '未提供'}
+              </p>
+            </div>
+          </div>
+          {/* 報讀流程 */}
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm my-8">
+            <h3 className="font-medium text-gray-800 text-lg mb-5">報讀課程流程</h3>
+            
+            <ol className="space-y-4">
+              {/* Step 1 */}
+              <li className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-medium">
+                  1
+                </div>
+                <p className="text-gray-600">
+                  註冊學生帳號
+                </p>
+              </li>
+              
+              {/* Step 2 */}
+              <li className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-medium">
+                  2
+                </div>
+                <p className="text-gray-600">
+                  登錄學生帳號
+                </p>
+              </li>
+              
+              {/* Step 3 */}
+              <li className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-medium">
+                  3
+                </div>
+                <p className="text-gray-600">
+                  選擇課程後，按「報名及付款」
+                </p>
+              </li>
+              
+              {/* Step 4 */}
+              <li className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-medium">
+                  4
+                </div>
+                <p className="text-gray-600">
+                  完成付款程序，就能夠報讀該課程。
+                </p>
+              </li>
+            </ol>
           </div>
         </div>
 
@@ -227,40 +322,18 @@ export default function ProductPage() {
             )}
           </div>
 
-          {/* YouTube 影片播放器（僅顯示第一部）*/}
-          {videos.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Play className="w-5 h-5" /> 課程影片
-              </h3>
+          
 
-              <div className="relative bg-black rounded-lg overflow-hidden">
-                {firstVideoId ? (
-                  <YouTube
-                    videoId={firstVideoId}
-                    opts={opts}
-                    className="aspect-video"
-                    iframeClassName="w-full h-full"
-                  />
-                ) : (
-                  <div className="bg-gray-800 text-white flex items-center justify-center h-80 rounded">
-                    無法載入影片
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* 加入購物車 */}
+          {/* 加入課程 */}
           <div className="flex items-center gap-3 pt-4 border-t">
-            <input
+            {/* <input
               type="number"
               value={quantity}
               onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
               min="1"
               className="border rounded p-2 w-20 text-center"
               disabled={isPending}
-            />
+            /> */}
             <button
               onClick={handleAddToCart}
               disabled={isPending}
@@ -270,31 +343,9 @@ export default function ProductPage() {
                   : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
             >
-              {isPending ? '加入中...' : '加入購物車'}
+              {isPending ? '加入中...' : '報名及付款'}
             </button>
-          </div>
-
-          {/* 三欄資訊 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h4 className="font-semibold text-blue-900 mb-1">目標觀眾</h4>
-              <p className="text-gray-700 whitespace-pre-line">
-                {getProduct.Target_Audience || '未提供'}
-              </p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <h4 className="font-semibold text-green-900 mb-1">課程目標</h4>
-              <p className="text-gray-700 whitespace-pre-line">
-                {getProduct.Course_Objective || '未提供'}
-              </p>
-            </div>
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <h4 className="font-semibold text-purple-900 mb-1">適用場景</h4>
-              <p className="text-gray-700 whitespace-pre-line">
-                {getProduct.Applicable_Scenarios || '未提供'}
-              </p>
-            </div>
-          </div>
+          </div>     
         </div>
       </div>
     </div>

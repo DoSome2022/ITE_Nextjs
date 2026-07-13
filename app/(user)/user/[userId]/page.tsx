@@ -1,3 +1,4 @@
+//app/(user)/user/[userId]/page.tsx
 "use client";
 
 import { useSession } from "next-auth/react";
@@ -156,20 +157,20 @@ async function fetchAccountsData() {
         {/* 上方：用戶資料部分 */}
         <div className="bg-gray-800 shadow-lg rounded-lg p-6 mb-6">
           <h1 className="text-2xl font-bold mb-6">歡迎，{session.user.name}</h1>
-          <h2 className="text-xl font-semibold mb-4">用戶資料</h2>
+          <h2 className="text-xl font-semibold mb-4">學生資料</h2>
           
           {userData ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-400">用戶 ID</p>
+                <p className="text-sm text-gray-400">學生 ID</p>
                 <p className="text-base">{userData.id}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-400">用戶名</p>
+                <p className="text-sm text-gray-400">登入帳號</p>
                 <p className="text-base">{userData.username}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-400">姓名</p>
+                <p className="text-sm text-gray-400">學生姓名</p>
                 <p className="text-base">{userData.name || "未設置"}</p>
               </div>
               <div>

@@ -1,3 +1,5 @@
+//app/api/Type/Get_Type_Lists/route.ts
+
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server"; 
 

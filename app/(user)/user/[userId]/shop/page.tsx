@@ -284,8 +284,8 @@ console.log("originalProductLists: ", originalProductLists , "-- End --")
         <div className="container mx-auto px-6 relative z-10">
           <div className="mx-auto px-4 max-w-7xl">
             <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-blue-600/30 border border-blue-400/30 text-blue-300 text-sm font-medium mb-6">
-              <Award className="w-4 h-4" />
-              <span>NITTP 政府資助認可培訓機構</span>
+              {/* <Award className="w-4 h-4" /> */}
+              <span>NITTP政府資助課程 認可培訓機構</span>
             </div>
             <h1 className="text-2xl md:text-4xl font-bold leading-tight mb-6 tracking-tight">
               引領企業 <span className="text-blue-400">科技轉型</span><br />
@@ -294,6 +294,12 @@ console.log("originalProductLists: ", originalProductLists , "-- End --")
             <p className="text-sm md:text-md text-slate-300 mb-5 leading-relaxed max-w-2xl">
               ITE 專注於將前沿科技轉化為可落地的商業技能。從 AI 應用到數據科學，我們提供的不僅是課程，而是企業升級的解決方案。
             </p>
+            {/* More Button */}
+            <Link href='/Posts'>
+              <button className="px-5 py-1 border-white border-2 text-white rounded-3xl flex items-center gap-2 hover:border-yellow-200 hover:bg-slate-600 transition-colors">
+                <span>前往我們的最新消息 了解更多</span>
+              </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -306,7 +312,7 @@ console.log("originalProductLists: ", originalProductLists , "-- End --")
         <div className="w-full lg:w-1/4 shrink-0 space-y-6 lg:sticky lg:top-4">
           
           {/* 搜尋區塊 */}
-          <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-4">
             <label className="block text-sm font-bold text-slate-900 mb-3 uppercase tracking-wide">搜尋課程</label>
             <div className="relative">
               <input
@@ -320,9 +326,9 @@ console.log("originalProductLists: ", originalProductLists , "-- End --")
           </div>
 
           {/* 類型篩選 */}
-          <div className="hidden lg:block bg-white border border-slate-200 shadow-sm rounded-xl p-6">
+          <div className="hidden lg:block  bg-white border border-slate-200 shadow-sm rounded-xl p-4">
             <label className="block text-sm font-bold text-slate-900 mb-3 uppercase tracking-wide">類型篩選</label>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 max-h-20 overflow-y-auto pr-2">
               {courseProductTypes.map((type) => (
                 <label key={type.id} className="inline-flex items-center group cursor-pointer">
                   <input
@@ -338,9 +344,9 @@ console.log("originalProductLists: ", originalProductLists , "-- End --")
           </div>
 
           {/* 狀態篩選 */}
-          <div className="hidden lg:block bg-white border border-slate-200 shadow-sm rounded-xl p-6">
-            <label className="block text-sm font-bold text-slate-900 mb-3 uppercase tracking-wide">狀態篩選</label>
-            <div className="flex flex-col gap-3">
+          <div className="hidden lg:block h-1/5 bg-white border border-slate-200 shadow-sm rounded-xl p-4">
+              <label className="block text-sm font-bold text-slate-900 mb-3 uppercase tracking-wide">狀態篩選</label>
+              <div className="flex flex-col gap-3 max-h-20 overflow-y-auto pr-2">
               {courseProductStatuses.map((status) => (
                 <label key={status.id} className="inline-flex items-center group cursor-pointer">
                   <input

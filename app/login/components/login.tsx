@@ -22,22 +22,26 @@ export default function SignIn() {
   const searchParams = useSearchParams();
 
 
+
 useEffect(() => {
   if (status === 'authenticated' && session?.user?.id) {
     const callbackUrl = searchParams.get('callbackUrl');
+    const loginMethod = session.user.loginMethod || 'local'; // 👈 從 session 取得
 
     if (callbackUrl) {
-      router.replace(callbackUrl);
+      // 處理 callbackUrl 已有參數的情況
+      const separator = callbackUrl.includes('?') ? '&' : '?';
+      router.replace(`${callbackUrl}${separator}login=${loginMethod}`);
       return;
     }
 
     // 沒有 callbackUrl 才走原本的角色導向
     const { role, id } = session.user;
     const path =
-      role === 'USER' ? `/user/${id}` :
-      role === 'TEACHER' ? `/teacher/${id}` :
-      role === 'ADMIN' ? '/admin' :
-      '/shop';
+      role === 'USER' ? `/user/${id}?login=${loginMethod}` :
+      role === 'TEACHER' ? `/teacher/${id}?login=${loginMethod}` :
+      role === 'ADMIN' ? `/admin?login=${loginMethod}` :
+      `/shop?login=${loginMethod}`;
 
     router.replace(path);
   }
@@ -133,8 +137,8 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-md">
-      <h1 className="text-2xl font-bold mb-6 text-center">登入</h1>
+    <div className="container mx-auto p-4 max-w-md mt-20">
+      <h1 className="text-2xl font-bold mb-6 text-center">學生登入</h1>
 
       {/* 表單登入 */}
       <form onSubmit={handleSubmit} className="space-y-4">

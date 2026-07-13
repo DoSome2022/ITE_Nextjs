@@ -72,8 +72,55 @@ const user_create_form_onSubmit = async (
   };
 
   return (
-    <div className="bg-gray-800 text-white shadow-lg min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="text-black shadow-lg m-20">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-2xl font-bold mb-6 text-center">學生註冊</h1>
+        {/* 報讀流程 */}
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm my-8">
+            <h3 className="font-medium text-gray-800 text-lg mb-5">報讀課程流程</h3>
+            
+            <ol className="space-y-4">
+              {/* Step 1 */}
+              <li className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-medium">
+                  1
+                </div>
+                <p className="text-gray-600">
+                  註冊學生帳號
+                </p>
+              </li>
+              
+              {/* Step 2 */}
+              <li className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-medium">
+                  2
+                </div>
+                <p className="text-gray-600">
+                  登錄學生帳號
+                </p>
+              </li>
+              
+              {/* Step 3 */}
+              <li className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-medium">
+                  3
+                </div>
+                <p className="text-gray-600">
+                  選擇課程後，按「報名及付款」
+                </p>
+              </li>
+              
+              {/* Step 4 */}
+              <li className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-medium">
+                  4
+                </div>
+                <p className="text-gray-600">
+                  完成付款程序，就能夠報讀該課程。
+                </p>
+              </li>
+            </ol>
+          </div>
         <Form {...user_create_form}>
           <form
             onSubmit={user_create_form.handleSubmit(user_create_form_onSubmit)}
@@ -90,15 +137,15 @@ const user_create_form_onSubmit = async (
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white font-medium">
-                      用戶名稱
+                    <FormLabel className=" font-medium">
+                      登入帳號
                     </FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         disabled={isPending}
                         placeholder="輸入用戶名稱"
-                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-gray-500 focus:border-gray-500 rounded-md px-3 py-2"
+                        className=" border-gray-200  placeholder-gray-400 focus:ring-gray-500 focus:border-gray-500 rounded-md px-3 py-2"
                       />
                     </FormControl>
                     <FormMessage className="text-red-500 text-sm" />
@@ -110,8 +157,8 @@ const user_create_form_onSubmit = async (
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white font-medium">
-                      姓名
+                    <FormLabel className=" font-medium">
+                      學生姓名
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -119,7 +166,7 @@ const user_create_form_onSubmit = async (
                         value={field.value ?? ""}
                         disabled={isPending}
                         placeholder="輸入姓名"
-                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-gray-500 focus:border-gray-500 rounded-md px-3 py-2"
+                        className=" border-gray-200  placeholder-gray-400 focus:ring-gray-500 focus:border-gray-500 rounded-md px-3 py-2"
                       />
                     </FormControl>
                     <FormMessage className="text-red-500 text-sm" />
@@ -131,7 +178,7 @@ const user_create_form_onSubmit = async (
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white font-medium">
+                    <FormLabel className=" font-medium">
                       密碼
                     </FormLabel>
                     <FormControl>
@@ -140,7 +187,7 @@ const user_create_form_onSubmit = async (
                         disabled={isPending}
                         placeholder="輸入密碼"
                         type="password"
-                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-gray-500 focus:border-gray-500 rounded-md px-3 py-2"
+                        className=" border-gray-200  placeholder-gray-400 focus:ring-gray-500 focus:border-gray-500 rounded-md px-3 py-2"
                       />
                     </FormControl>
                     <FormMessage className="text-red-500 text-sm" />
@@ -152,7 +199,7 @@ const user_create_form_onSubmit = async (
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white font-medium">
+                    <FormLabel className=" font-medium">
                       電話
                     </FormLabel>
                     <FormControl>
@@ -161,7 +208,7 @@ const user_create_form_onSubmit = async (
                         value={field.value ?? ""}
                         disabled={isPending}
                         placeholder="輸入電話"
-                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-gray-500 focus:border-gray-500 rounded-md px-3 py-2"
+                        className=" border-gray-200  placeholder-gray-400 focus:ring-gray-500 focus:border-gray-500 rounded-md px-3 py-2"
                       />
                     </FormControl>
                     <FormMessage className="text-red-500 text-sm" />
@@ -172,12 +219,12 @@ const user_create_form_onSubmit = async (
             <Button
               type="submit"
               disabled={isPending}
-              className="w-full bg-gray-700 text-white hover:bg-gray-600 font-medium rounded-md px-3 py-2"
+              className="w-full   hover:bg-gray-600 font-medium rounded-md px-3 py-2"
             >
               {isPending ? (
                 <span className="flex items-center justify-center">
                   <svg
-                    className="animate-spin h-5 w-5 mr-2 text-white"
+                    className="animate-spin h-5 w-5 mr-2 "
                     viewBox="0 0 24 24"
                   >
                     <circle

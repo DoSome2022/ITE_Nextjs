@@ -38,6 +38,7 @@ declare module "next-auth" {
     user: {
       id: string;
       role: "ADMIN" | "TEACHER" | "USER";  // 對應您的 UserRole enum
+      loginMethod: string;  // 👈 新增
       name?: string | null;
       email?: string | null;
       image?: string | null;
@@ -49,5 +50,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     role?: "ADMIN" | "TEACHER" | "USER";
+    loginMethod: string;  // 👈 新增
   }
 }

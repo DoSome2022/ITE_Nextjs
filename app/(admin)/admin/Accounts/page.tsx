@@ -362,13 +362,14 @@
 
 // export default AccountsListsPage;
 
-
-
+//app/(admin)/admin/Accounts/page.tsx
 "use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 interface AccountsData {
   id: string;
@@ -469,7 +470,10 @@ const AccountsListsPage = () => {
     setFilteredTeachers(result);
   }, [selectedTeacher, selectedMonth, selectedYear, teachersData]);
 
-  // 導出帳目數據為 TXT
+  // ───────────────────────────────────────────
+  // 導出為 TXT
+  // ───────────────────────────────────────────
+
   const exportAccountsToTxt = () => {
     const headers = ["標題", "客戶", "金額", "日期"];
     const rows = accountsData.map((account) => [
@@ -488,7 +492,10 @@ const AccountsListsPage = () => {
     URL.revokeObjectURL(url);
   };
 
-  // 導出帳目數據為 Excel
+  // ───────────────────────────────────────────
+  // 導出為 Excel
+  // ───────────────────────────────────────────
+
   const exportAccountsToExcel = () => {
     const worksheetData = accountsData.map((account) => ({
       標題: account.title,
@@ -502,7 +509,95 @@ const AccountsListsPage = () => {
     XLSX.writeFile(workbook, `Accounts_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  // 導出教師課程數據為 TXT
+  // ───────────────────────────────────────────
+  // 導出為 PDF（html2canvas 方式，完美支援中文）
+  // ───────────────────────────────────────────
+
+  const exportAccountsToPdf = async () => {
+    // 1. 建立 HTML 表格字串
+    const tableHtml = `
+      <div style="font-family: 'Microsoft JhengHei', 'Noto Sans TC', 'PingFang TC', sans-serif; padding: 30px; width: 750px;">
+        <h1 style="font-size: 24px; color: #1f2937; margin-bottom: 8px;">帳目記錄</h1>
+        <p style="font-size: 12px; color: #6b7280; margin-bottom: 20px;">匯出日期：${new Date().toLocaleDateString("zh-TW")}</p>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <thead>
+            <tr style="background: #3b82f6; color: white;">
+              <th style="padding: 10px 12px; border: 1px solid #d1d5db; text-align: left;">標題</th>
+              <th style="padding: 10px 12px; border: 1px solid #d1d5db; text-align: left;">客戶</th>
+              <th style="padding: 10px 12px; border: 1px solid #d1d5db; text-align: right;">金額</th>
+              <th style="padding: 10px 12px; border: 1px solid #d1d5db; text-align: center;">日期</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${accountsData
+              .map(
+                (account, index) => `
+              <tr style="background: ${index % 2 === 0 ? "#ffffff" : "#f3f4f6"};">
+                <td style="padding: 8px 12px; border: 1px solid #d1d5db;">${account.title}</td>
+                <td style="padding: 8px 12px; border: 1px solid #d1d5db;">${account.client_name}</td>
+                <td style="padding: 8px 12px; border: 1px solid #d1d5db; text-align: right;">$${account.total}</td>
+                <td style="padding: 8px 12px; border: 1px solid #d1d5db; text-align: center;">${new Date(account.date).toLocaleDateString("zh-TW")}</td>
+              </tr>
+            `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    // 2. 建立暫存容器
+    const container = document.createElement("div");
+    container.innerHTML = tableHtml;
+    container.style.position = "absolute";
+    container.style.left = "-9999px";
+    container.style.top = "0";
+    document.body.appendChild(container);
+
+    try {
+      // 3. 轉為 Canvas
+      const canvas = await html2canvas(container, {
+        scale: 2,          // 2x 解析度，文字更清晰
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const doc = new jsPDF("p", "mm", "a4");
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = margin;
+
+      // 第一頁
+      doc.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - margin * 2;
+
+      // 如果需要多頁
+      while (heightLeft > 0) {
+        position = margin - (imgHeight - heightLeft);
+        doc.addPage();
+        doc.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight - margin * 2;
+      }
+
+      doc.save(`Accounts_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } finally {
+      // 4. 清除暫存
+      document.body.removeChild(container);
+    }
+  };
+
+  // ───────────────────────────────────────────
+  // 教師課程：導出為 TXT
+  // ───────────────────────────────────────────
+
   const exportTeachersToTxt = () => {
     const content = filteredTeachers
       .map((teacher) => {
@@ -532,7 +627,10 @@ const AccountsListsPage = () => {
     URL.revokeObjectURL(url);
   };
 
-  // 導出教師課程數據為 Excel
+  // ───────────────────────────────────────────
+  // 教師課程：導出為 Excel
+  // ───────────────────────────────────────────
+
   const exportTeachersToExcel = () => {
     const worksheetData = filteredTeachers.flatMap((teacher) =>
       teacher.Course.map((course) => ({
@@ -558,6 +656,116 @@ const AccountsListsPage = () => {
     XLSX.writeFile(workbook, `Teachers_Courses_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
+  // ───────────────────────────────────────────
+  // 教師課程：導出為 PDF（html2canvas 方式，完美支援中文）
+  // ───────────────────────────────────────────
+
+  const exportTeachersToPdf = async () => {
+    // 建立過濾條件顯示文字
+    let filterText = `匯出日期：${new Date().toLocaleDateString("zh-TW")}`;
+    if (selectedTeacher) {
+      const teacher = teachersData.find((t) => t.id === selectedTeacher);
+      filterText += ` | 教師：${teacher?.name || selectedTeacher}`;
+    }
+    if (selectedMonth) filterText += ` | ${selectedMonth}月`;
+    if (selectedYear) filterText += ` | ${selectedYear}年`;
+
+    // 1. 建立 HTML 字串
+    const tableHtml = `
+      <div style="font-family: 'Microsoft JhengHei', 'Noto Sans TC', 'PingFang TC', sans-serif; padding: 30px; width: 750px;">
+        <h1 style="font-size: 24px; color: #1f2937; margin-bottom: 8px;">教師課程時間</h1>
+        <p style="font-size: 12px; color: #6b7280; margin-bottom: 20px;">${filterText}</p>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead>
+            <tr style="background: #10b981; color: white;">
+              <th style="padding: 10px 12px; border: 1px solid #d1d5db; text-align: left;">教師</th>
+              <th style="padding: 10px 12px; border: 1px solid #d1d5db; text-align: left;">課程</th>
+              <th style="padding: 10px 12px; border: 1px solid #d1d5db; text-align: center;">總時數</th>
+              <th style="padding: 10px 12px; border: 1px solid #d1d5db; text-align: left;">上課日期</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredTeachers
+              .flatMap((teacher) =>
+                teacher.Course.map((course) => ({
+                  name: teacher.name,
+                  courseTitle: course.title,
+                  totalHours: `${course.timeHours * course.Coursedates.length} 小時`,
+                  dates: course.Coursedates
+                    .map((date) =>
+                      new Date(date).toLocaleDateString("zh-TW", {
+                        month: "numeric",
+                        day: "numeric",
+                      })
+                    )
+                    .join("、"),
+                }))
+              )
+              .map(
+                (row, index) => `
+              <tr style="background: ${index % 2 === 0 ? "#ffffff" : "#ecfdf5"};">
+                <td style="padding: 8px 12px; border: 1px solid #d1d5db;">${row.name}</td>
+                <td style="padding: 8px 12px; border: 1px solid #d1d5db;">${row.courseTitle}</td>
+                <td style="padding: 8px 12px; border: 1px solid #d1d5db; text-align: center;">${row.totalHours}</td>
+                <td style="padding: 8px 12px; border: 1px solid #d1d5db; font-size: 11px;">${row.dates}</td>
+              </tr>
+            `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    // 2. 建立暫存容器
+    const container = document.createElement("div");
+    container.innerHTML = tableHtml;
+    container.style.position = "absolute";
+    container.style.left = "-9999px";
+    container.style.top = "0";
+    document.body.appendChild(container);
+
+    try {
+      // 3. 轉為 Canvas
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const doc = new jsPDF("p", "mm", "a4");
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = margin;
+
+      doc.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - margin * 2;
+
+      while (heightLeft > 0) {
+        position = margin - (imgHeight - heightLeft);
+        doc.addPage();
+        doc.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight - margin * 2;
+      }
+
+      doc.save(`Teachers_Courses_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } finally {
+      document.body.removeChild(container);
+    }
+  };
+
+  // ───────────────────────────────────────────
+  // Render
+  // ───────────────────────────────────────────
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -575,18 +783,24 @@ const AccountsListsPage = () => {
           <div className="w-full lg:w-1/2 bg-white rounded-lg shadow-md p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-gray-700">帳目記錄</h2>
-              <div className="space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={exportAccountsToTxt}
-                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-3 rounded text-sm"
                 >
-                  導出為 TXT
+                  TXT
                 </button>
                 <button
                   onClick={exportAccountsToExcel}
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
                 >
-                  導出為 Excel
+                  Excel
+                </button>
+                <button
+                  onClick={exportAccountsToPdf}
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-3 rounded text-sm"
+                >
+                  PDF
                 </button>
               </div>
             </div>
@@ -620,22 +834,29 @@ const AccountsListsPage = () => {
               </table>
             </div>
           </div>
+
           {/* 右側：教師課程時間 */}
           <div className="w-full lg:w-1/2 bg-white rounded-lg shadow-md p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-gray-700">教師課程時間</h2>
-              <div className="space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={exportTeachersToTxt}
-                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-3 rounded text-sm"
                 >
-                  導出為 TXT
+                  TXT
                 </button>
                 <button
                   onClick={exportTeachersToExcel}
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
                 >
-                  導出為 Excel
+                  Excel
+                </button>
+                <button
+                  onClick={exportTeachersToPdf}
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-3 rounded text-sm"
+                >
+                  PDF
                 </button>
               </div>
             </div>

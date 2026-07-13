@@ -73,7 +73,8 @@ const ProductListsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-
+  const [sortOrder, setSortOrder] = useState<'none' | 'price-asc' | 'price-desc'>('none');
+  
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -155,11 +156,31 @@ const ProductListsPage = () => {
    .sort((a, b) => a.name.localeCompare(b.name));
 
   // 過濾邏輯
-  const filterProducts = (list: ProductLists[]) => {
-    return list.filter((product) => {
+  // const filterProducts = (list: ProductLists[]) => {
+  //   return list.filter((product) => {
 
-      console.log("product:", product,"-- End --");
+  //     console.log("product:", product,"-- End --");
 
+  //     const matchesSearch =
+  //       searchTerm === "" ||
+  //       product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       product.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+  //     const matchesTypes =
+  //       selectedTypes.length === 0 ||
+  //       selectedTypes.every((type) => product.CourseProductTypeDetails.includes(type));
+
+  //     const matchesStatuses =
+  //       selectedStatuses.length === 0 ||
+  //       selectedStatuses.every((status) => product.CourseProductStatusDetails.includes(status));
+
+  //     return matchesSearch && matchesTypes && matchesStatuses;
+  //   });
+  // };
+    // 過濾邏輯（含排序）
+  const filterAndSortProducts = (list: ProductLists[]) => {
+    // 先過濾
+    const filtered = list.filter((product) => {
       const matchesSearch =
         searchTerm === "" ||
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -175,15 +196,25 @@ const ProductListsPage = () => {
 
       return matchesSearch && matchesTypes && matchesStatuses;
     });
+
+    // 再排序
+    if (sortOrder === 'none') return filtered;
+
+    return [...filtered].sort((a, b) => {
+      const priceA = a.real_price;
+      const priceB = b.real_price;
+      return sortOrder === 'price-asc' ? priceA - priceB : priceB - priceA;
+    });
   };
 
-  const normalProducts = filterProducts(
+
+  const normalProducts = filterAndSortProducts(
     products.filter((p) => !p.isTrash && p.Course?.Producted !== true)
   );
-  const specialProducts = filterProducts(
+  const specialProducts = filterAndSortProducts(
     products.filter((p) => !p.isTrash && p.Course?.Producted === true)
   );
-  const trashProducts = filterProducts(products.filter((p) => p.isTrash));
+  const trashProducts = filterAndSortProducts(products.filter((p) => p.isTrash));
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} />;
@@ -316,7 +347,7 @@ const ProductListsPage = () => {
 
         {/* 搜尋與過濾區塊 */}
         <div className="mb-8 space-y-6 bg-gray-800/50 p-6 rounded-lg">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <Label htmlFor="search">搜尋產品</Label>
               <Input
@@ -420,6 +451,23 @@ const ProductListsPage = () => {
               )}
             </div>
           </div>
+            {/* 價格排序 */}
+            <div>
+              <Label>價格排序</Label>
+              <Select
+                value={sortOrder}
+                onValueChange={(value) => setSortOrder(value as 'none' | 'price-asc' | 'price-desc')}
+              >
+                <SelectTrigger className="bg-gray-700 border-gray-600">
+                  <SelectValue placeholder="排序方式" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">預設排序</SelectItem>
+                  <SelectItem value="price-asc">價格：低到高 ↑</SelectItem>
+                  <SelectItem value="price-desc">價格：高到低 ↓</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
           {(searchTerm || selectedTypes.length > 0 || selectedStatuses.length > 0) && (
             <div className="flex items-center justify-between">
@@ -431,6 +479,7 @@ const ProductListsPage = () => {
                   setSearchTerm("");
                   setSelectedTypes([]);
                   setSelectedStatuses([]);
+                  setSortOrder('none');
                 }}
                 className="text-blue-400 hover:underline text-sm"
               >
