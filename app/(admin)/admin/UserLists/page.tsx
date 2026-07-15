@@ -1,3 +1,5 @@
+// app/(admin)/admin/UserLists/page.tsx
+
 "use client";
 
 import Link from "next/link";
@@ -19,6 +21,10 @@ const UserListsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null); // 正在刪除的 ID
   const [showConfirm, setShowConfirm] = useState<string | null>(null); // 確認視窗
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
+
+
 
   const usersPerPage = 10;
 
@@ -63,6 +69,69 @@ const UserListsPage = () => {
     }
   };
 
+  // 匯出功能
+const handleExport = async () => {
+  try {
+    const response = await fetch("/api/user/Export_Users");
+    if (!response.ok) throw new Error("匯出失敗");
+    
+    // 建立下載連結
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `users_export_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    alert("匯出失敗，請稍後再試");
+  }
+};
+
+// 匯入功能
+
+const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  setImporting(true);
+  setImportResult(null);
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/user/Import_Users", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "匯入失敗");
+    }
+
+    setImportResult(result);
+
+    // 重新載入用戶列表
+    const refreshResponse = await fetch("/api/user/Get_User_Lists");
+    if (refreshResponse.ok) {
+      const data = await refreshResponse.json();
+      setGetUserDataLists(data);
+    }
+  } catch (error) {
+    alert(error instanceof Error ? error.message : "匯入失敗");
+  } finally {
+    setImporting(false);
+    // 重置 file input，讓用戶可以再次上傳同一個檔案
+    e.target.value = "";
+  }
+};
+
+
   // 過濾與分頁邏輯（不變）
   const filteredUsers = getUserDataLists.filter(
     (user) =>
@@ -82,21 +151,73 @@ const UserListsPage = () => {
   return (
     <div className="bg-gray-900 min-h-screen text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">用戶列表</h1>
-          <Link
-            href="/admin/UserLists/createUser"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition"
-          >
-            建立用戶
-          </Link>
-        </div>
+<div className="flex justify-between items-center mb-6">
+  <h1 className="text-2xl font-bold">用戶列表</h1>
+  <div className="flex gap-2">
+    {/* 匯入按鈕 */}
+    <button
+      onClick={() => document.getElementById("importFileInput")?.click()}
+      className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition"
+    >
+      匯入 CSV
+    </button>
+    <input
+      id="importFileInput"
+      type="file"
+      accept=".csv"
+      style={{ display: "none" }}
+      onChange={handleImport}
+    />
+    
+    {/* 匯出按鈕 */}
+    <button
+      onClick={handleExport}
+      className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 transition"
+    >
+      匯出 CSV
+    </button>
+    
+    <Link
+      href="/admin/UserLists/createUser"
+      className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition"
+    >
+      建立用戶
+    </Link>
+  </div>
+</div>
+
 
         {error && (
           <div className="mb-4 text-red-500 p-4 bg-red-900/50 rounded-md">
             {error}
           </div>
         )}
+
+{/* 匯入結果提示 */}
+{importResult && (
+  <div className={`mb-4 p-4 rounded-md ${
+    importResult.failed > 0 ? "bg-yellow-900/50 text-yellow-300" : "bg-green-900/50 text-green-300"
+  }`}>
+    <p>匯入完成：成功 {importResult.success} 筆，失敗 {importResult.failed} 筆</p>
+    {importResult.errors.length > 0 && (
+      <details className="mt-2">
+        <summary className="cursor-pointer text-sm">查看錯誤詳情</summary>
+        <ul className="list-disc pl-5 mt-1 text-sm space-y-1">
+          {importResult.errors.map((err, idx) => (
+            <li key={idx}>{err}</li>
+          ))}
+        </ul>
+      </details>
+    )}
+  </div>
+)}
+
+{importing && (
+  <div className="mb-4 p-4 bg-blue-900/50 text-blue-300 rounded-md">
+    正在匯入資料，請稍候...
+  </div>
+)}
+
 
         <div className="mb-4">
           <input
@@ -143,18 +264,30 @@ const UserListsPage = () => {
                   </Link>
 
                   {/* 刪除按鈕 */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      setShowConfirm(user.id);
-                    }}
-                    disabled={deletingId === user.id}
-                    className="ml-4 px-3 py-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm rounded transition"
-                  >
-                    {deletingId === user.id ? "刪除中..." : "刪除"}
-                  </button>
-                </div>
+{/* 操作按鈕群組 */}
+<div className="flex gap-2 ml-4">
+  <Link
+    href={`/admin/UserLists/${user.id}/edit`}
+    onClick={(e) => {
+      e.stopPropagation();
+    }}
+    className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition"
+  >
+    編輯
+  </Link>
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setShowConfirm(user.id);
+    }}
+    disabled={deletingId === user.id}
+    className="px-3 py-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm rounded transition"
+  >
+    {deletingId === user.id ? "刪除中..." : "刪除"}
+  </button>
+</div>
+</div>
               ))}
             </div>
           )}

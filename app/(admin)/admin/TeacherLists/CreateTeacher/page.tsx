@@ -1,3 +1,5 @@
+// app/(admin)/admin/TeacherLists/CreateTeacher/page.tsx
+
 "use client";
 
 import Create_Teacher_Form from "@/components/CreateForm/Create-Teacher-Form";

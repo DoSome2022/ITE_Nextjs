@@ -35,6 +35,7 @@ const publicRoutes = [
   '/core',
   '/ourteam',
   '/privacy-policy',
+  '/Contactus',
 ];
 
 // 靜態資源路徑，不應該被攔截

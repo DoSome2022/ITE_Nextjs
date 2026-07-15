@@ -16,6 +16,8 @@ model User {
   phone                   String?
   phoneVerified           DateTime?
   name                    String?
+  address                 String?
+  hourlyRate              Float? 
   role                    UserRole
   teacherholidaysDateTime String[]
   createdAt               DateTime      @default(now())
@@ -25,6 +27,7 @@ model User {
   Order                   Order[]
   Cart                    Cart[]
   CourseModul             CourseModul[]
+  attendances  Attendance[] 
   Account                 Account[]
   Course                  Course[]
   OAuth                   OAuth[]
@@ -152,6 +155,7 @@ model Course {
   GroupMember         GroupMember[]
   CourseModul         CourseModul?          @relation(fields: [courseModulId], references: [id])
   courseModulId       String?
+  Attendance          Attendance[]    
   CoursePorductType   CourseProductType[]
   CoursePorductStatue CourseProductStatus[]
   CourseTimeRanges    CourseTimeRange[] // 新增關聯到 CourseTimeRange
@@ -551,4 +555,49 @@ enum UserRole {
   USER
   ADMIN
   TEACHER
+}
+
+
+// 出席記錄表
+model Attendance {
+  id         String   @id @default(cuid())
+  userId     String                     // 用戶 ID（老師或學生）
+  courseId   String                     // 課程 ID
+  date       DateTime                   // 課程日期（上課日期）
+  status     AttendanceStatus @default(PRESENT)  // 出席狀態
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course     Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId, date])  // 同一個用戶在同一天同一個課程只能有一筆記錄
+  @@index([courseId, date])
+  @@index([userId])
+}
+
+enum AttendanceStatus {
+  PRESENT     // 出席
+  ABSENT      // 缺席
+  LATE        // 遲到
+  EXCUSED     // 請假
+}
+
+
+// 聯絡表單模型
+model ContactMessage {
+  id            String   @id @default(cuid())
+  name          String                     // 稱名
+  phone         String                     // 電話
+  email         String                     // 電郵
+  productTypes  String[]                   // 商品類型（對應 CourseProductType 的多選）
+  contactType   String                     // 類型：個人/團體/公司/其他
+  otherType     String?                    // 如果類型是「其他」，用戶自行輸入
+  details       String                     // 細節內容
+  status        String   @default("PENDING") // 狀態：PENDING/REPLIED/CLOSED
+  adminReply    String?                    // 管理員回覆
+  repliedAt     DateTime?                  // 回覆時間
+  readAt        DateTime?                  // 已讀時間
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

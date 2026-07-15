@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -120,14 +120,20 @@ const UserDetailbyIdPage = () => {
                 </p>
               </div> */}
             </div>
-            <div className="mt-6">
-              <button
-                onClick={() => window.history.back()}
-                className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition"
-              >
-                返回
-              </button>
-            </div>
+<div className="mt-6 flex gap-3">
+  <button
+    onClick={() => window.history.back()}
+    className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition"
+  >
+    返回
+  </button>
+  <Link
+    href={`/admin/UserLists/${userId}/edit`}
+    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+  >
+    編輯用戶資料
+  </Link>
+</div>
           </div>
         ) : (
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg">

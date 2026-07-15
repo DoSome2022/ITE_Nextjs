@@ -1,3 +1,5 @@
+// app/api/user/teacher/[teacherId]/CourseLists/route.ts
+
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 

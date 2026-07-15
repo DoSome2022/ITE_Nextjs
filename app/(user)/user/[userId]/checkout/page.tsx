@@ -1,4 +1,3 @@
-// app/(user)/user/[userId]/checkout/page.tsx
 "use client";
 
 import { useEffect, useState, useTransition } from 'react';
@@ -46,10 +45,52 @@ if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
 }
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
+// ⭐ 支付方式選項
+interface PaymentMethodOption {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+}
+
+const paymentMethods: PaymentMethodOption[] = [
+  {
+    id: 'card',
+    name: '信用卡 / 扣帳卡',
+    icon: '💳',
+    description: 'Visa, Mastercard, American Express',
+  },
+  {
+    id: 'alipay',
+    name: '支付寶',
+    icon: '💙',
+    description: 'Alipay - 中國內地常用支付方式',
+  },
+  {
+    id: 'wechat_pay',
+    name: '微信支付',
+    icon: '💚',
+    description: 'WeChat Pay - 中國內地常用支付方式',
+  },
+  {
+    id: 'unionpay',
+    name: '銀聯',
+    icon: '🔵',
+    description: 'UnionPay - 銀聯卡支付',
+  },
+  {
+    id: 'all',
+    name: '全部支付方式',
+    icon: '🌐',
+    description: '顯示所有可用的支付方式供您選擇',
+  },
+];
+
 export default function CheckoutPage() {
   const [cart, setCart] = useState<CartWithItems | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'payme'>('stripe');
+  // ⭐ 修改：支援多種支付方式
+  const [paymentMethod, setPaymentMethod] = useState<string>('card');
   const params = useParams();
   const userId = params.userId as string;
   const { data: session, status } = useSession();
@@ -62,7 +103,6 @@ export default function CheckoutPage() {
         if (!cartData || !cartData.items) throw new Error('購物車數據無效');
         setCart(cartData);
       } catch {
-        // ← 完全忽略錯誤變數
         setError('載入購物車失敗');
         toast.error('載入購物車失敗');
       }
@@ -76,7 +116,6 @@ export default function CheckoutPage() {
       toast.error('請先登入');
       return;
     }
-
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(userId)) {
@@ -92,24 +131,20 @@ export default function CheckoutPage() {
         quantity: item.quantity,
         productId: item.productId,
       }))
-      .filter((item, _) => {
+      .filter((item) => {
         if (!item.name || typeof item.name !== 'string') {
-          setError(`無效的商品名稱: ${item.name || '未定義'}`);
           toast.error(`無效的商品名稱: ${item.name || '未定義'}`);
           return false;
         }
         if (typeof item.real_price !== 'number' || item.real_price <= 0) {
-          setError(`無效的商品價格: ${item.real_price}`);
           toast.error(`無效的商品價格: ${item.real_price}`);
           return false;
         }
         if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
-          setError(`無效的商品數量: ${item.quantity}`);
           toast.error(`無效的商品數量: ${item.quantity}`);
           return false;
         }
         if (!item.productId) {
-          setError(`無效的商品 ID`);
           toast.error(`無效的商品 ID`);
           return false;
         }
@@ -125,18 +160,19 @@ export default function CheckoutPage() {
     startTransition(async () => {
       setError(null);
       try {
+        // ⭐ 傳送選擇的支付方式到 API
+        const response = await axios.post('/api/checkout', {
+          items,
+          userId,
+          paymentMethod, // ← 傳送支付方式
+        });
 
-        if (paymentMethod === 'stripe') {
-          const response = await axios.post('/api/CheckoutSessions', { items, userId });
-          const sessionId = response.data.id;
+        const sessionId = response.data.id;
+        const stripe = await stripePromise;
+        if (!stripe) throw new Error('無法初始化 Stripe');
 
-          const stripe = await stripePromise;
-          if (!stripe) throw new Error('無法初始化 Stripe');
-
-          const { error } = await stripe.redirectToCheckout({ sessionId });
-          if (error) throw error;
-        }
-        // PayMe 邏輯保留...
+        const { error } = await stripe.redirectToCheckout({ sessionId });
+        if (error) throw error;
       } catch (error: unknown) {
         console.error('結帳錯誤:', error);
         let errorMessage = '結帳處理失敗';
@@ -154,47 +190,84 @@ export default function CheckoutPage() {
   if (status === 'loading' || !cart) return <div>{error ?? '載入中...'}</div>;
   if (status === 'unauthenticated') return <div>請先登入</div>;
 
-  // ← 保留 UI 用的 total
   const total = cart.items.reduce((sum, item) => sum + item.quantity * item.product.real_price, 0);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">結帳</h1>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      <div className="mb-4">
+    <div className="container mx-auto p-4 max-w-2xl">
+      <h1 className="text-2xl font-bold mb-6">結帳</h1>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
+      {/* 商品列表 */}
+      <div className="bg-white shadow rounded-lg p-4 mb-6">
+        <h2 className="text-lg font-semibold mb-3">訂單摘要</h2>
         {cart.items.map((item) => (
-          <div key={item.id} className="flex justify-between mb-2">
-            <span>{item.product.title} (x{item.quantity})</span>
-            <span>${(item.quantity * item.product.real_price).toFixed(2)}</span>
+          <div key={item.id} className="flex justify-between mb-2 pb-2 border-b last:border-b-0">
+            <div>
+              <span className="font-medium">{item.product.title}</span>
+              <span className="text-gray-500 ml-2">x {item.quantity}</span>
+            </div>
+            <span className="font-medium">
+              HK${(item.quantity * item.product.real_price).toFixed(2)}
+            </span>
           </div>
         ))}
-        <div className="font-bold mt-2">總計: ${total.toFixed(2)}</div>
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">選擇支付方式</label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="stripe"
-              checked={paymentMethod === 'stripe'}
-              onChange={(e) => setPaymentMethod(e.target.value as 'stripe' | 'payme')}
-              className="mr-2"
-            />
-            Stripe (信用卡支付)
-          </label>
+        <div className="flex justify-between mt-3 pt-2 border-t font-bold text-lg">
+          <span>總計</span>
+          <span>HK${total.toFixed(2)}</span>
         </div>
       </div>
 
+      {/* ⭐ 支付方式選擇 */}
+      <div className="bg-white shadow rounded-lg p-4 mb-6">
+        <h2 className="text-lg font-semibold mb-3">選擇支付方式</h2>
+        <div className="space-y-3">
+          {paymentMethods.map((method) => (
+            <label
+              key={method.id}
+              className={`
+                flex items-center p-3 border rounded-lg cursor-pointer transition
+                ${
+                  paymentMethod === method.id
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }
+              `}
+            >
+              <input
+                type="radio"
+                value={method.id}
+                checked={paymentMethod === method.id}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="mr-3"
+              />
+              <div className="flex-1">
+                <div className="flex items-center">
+                  <span className="text-xl mr-2">{method.icon}</span>
+                  <span className="font-medium">{method.name}</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">{method.description}</p>
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* 提交按鈕 */}
       <button
         onClick={handleSubmit}
         disabled={isPending || cart.items.length === 0}
-        className={`bg-green-500 text-white px-4 py-2 rounded ${
-          isPending || cart.items.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+        className={`w-full py-3 text-white font-medium rounded-lg text-lg transition ${
+          isPending || cart.items.length === 0
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-blue-600 hover:bg-blue-700'
         }`}
       >
-        {isPending ? '處理中...' : '提交訂單'}
+        {isPending ? '處理中...' : `使用 ${paymentMethods.find(m => m.id === paymentMethod)?.name || '信用卡'} 付款`}
       </button>
     </div>
   );

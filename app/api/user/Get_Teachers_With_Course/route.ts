@@ -14,6 +14,7 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
+        hourlyRate: true, 
         Course: {
           select: {
             id: true,

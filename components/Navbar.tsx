@@ -292,6 +292,7 @@ export default function Navbar() {
     { name: "最新消息", engname: "NEWS", href: "/Posts" },
     { name: "教育團隊", engname: "OUR TEAM", href: "/ourteam" },
     { name: "關於我們", engname: "About Us", href: "/about" },
+    { name: "聯絡我們", engname: "Contact Us", href: "/Contactus" },
     { name: "登錄", engname: "", href: "/login" },
     { name: "註冊", engname: "", href: "/register" },
     { name: "", engname: "", href: "", isCustom: true, component: <WhatsAppButton /> },
