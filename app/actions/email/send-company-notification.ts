@@ -1,9 +1,9 @@
+//app/actions/email/send-company-notification.ts
+
 'use server';
 
-import { Resend } from 'resend';
 import { prisma } from '@/lib/prisma';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from '@/lib/email';
 
 interface CompanyNotificationInput {
   orderId: string;
@@ -39,7 +39,7 @@ export async function sendCompanyNotification({
     if (!order) throw new Error('訂單不存在');
     if (!user) throw new Error('用戶不存在');
 
-    // 2. 取得公司通知信箱（可從 env 或 DB 設定）
+    // 2. 取得公司通知信箱
     const companyEmail = process.env.COMPANY_NOTIFICATION_EMAIL;
     if (!companyEmail) {
       throw new Error('未設定 COMPANY_NOTIFICATION_EMAIL');
@@ -167,18 +167,16 @@ export async function sendCompanyNotification({
       </html>
     `;
 
-    // 5. 發送郵件
-    const { data, error } = await resend.emails.send({
-      from: `課程平台通知 <${process.env.EMAIL_FROM || 'noreply@yourdomain.com'}>`,
+    // 5. 🔥 用 Gmail 發送郵件
+    const result = await sendEmail({
       to: companyEmail,
       subject: `🔔 新訂單通知 - ${user.name || user.username} 購買了 ${order.items.length} 項商品`,
       html: emailHtml,
     });
 
-    if (error) throw error;
-
     console.log(`[公司通知] 已發送新訂單通知: ${order.id} → ${companyEmail}`);
-    return { success: true, messageId: data?.id };
+    return result;
+
   } catch (error) {
     console.error('發送公司通知失敗:', error);
     return { success: false, error: '發送公司通知失敗' };

@@ -1,10 +1,9 @@
 //app/actions/email/send-order-confirmation.ts
+
 'use server';
 
-import { Resend } from 'resend';
 import { prisma } from '@/lib/prisma';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from '@/lib/email';
 
 interface OrderConfirmationInput {
   orderId: string;
@@ -99,22 +98,18 @@ export async function sendOrderConfirmationEmail({
       </html>
     `;
 
-    // 3. 發送郵件
-    const { data, error } = await resend.emails.send({
-      from: '您的課程平台 <noreply@您的domain.com>',
+    // 3. 🔥 用 Gmail 發送郵件
+    const result = await sendEmail({
       to: user.email,
       subject: `訂單確認 - #${order.id.slice(0, 8)}`,
       html: emailHtml,
     });
 
-    if (error) throw error;
-
     console.log(`[Email] 訂單確認郵件已發送: ${order.id} → ${user.email}`);
-    return { success: true, messageId: data?.id };
+    return result;
 
   } catch (error) {
     console.error('發送確認郵件失敗:', error);
-    // 不拋出錯誤，避免影響主要流程
     return { success: false, error: '發送郵件失敗' };
   }
 }
