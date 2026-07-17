@@ -266,6 +266,7 @@ export default function Navbar() {
     { name: "AdminLOG", engname: "", href: "/admin/AdminLog" },
     { name: "特別程程列表", engname: "", href: "/admin/SpecialCourseLists" },
     { name: "POST列表", engname: "", href: "/admin/PostLists" },
+    { name: "訊息列表", engname: "", href: "/admin/ContactMessages" },
   ];
 
   const teacherNavItems = teacherId
