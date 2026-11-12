@@ -78,6 +78,24 @@
 - Webhook 與 success handler 可能重複建立訂單
 - 修復方向：以 `paymentId` 做唯一性檢查
 
+### ISSUE-013 [OPEN][P2] 付款金額記錄不一致（2026-11-12 發現）
+- `handle-payment-success` 寫入 `Order.total` / `OrderItem.price` 用 `product.price`，但 Stripe 實際收費係 `real_price × 100`；若兩者不同，訂單記錄金額 ≠ 實際扣款
+- 影響：學員購買記錄頁、Admin 帳務顯示嘅金額可能唔準確
+- 修復方向：付款流程改用 real_price 寫入（需用戶批准，觸及付款高風險區）
+
+### ISSUE-014 [OPEN][P2] Stripe Webhook 路徑損壞（2026-11-12 發現）
+- `app/api/webhooks/stripe/route.ts` 寫 `groupMember.createMany({ data: { courseId } })`，但 schema 嘅 `GroupMember` 冇 `courseId` 欄位；CheckoutSessions 建立嘅 Stripe product 亦唔係 DB Product ID
+- 影響：webhook 完成付款時嘅入帳/清購物車邏輯實際上唔生效，目前靠 `handle-payment-success` 補位
+- 修復方向：修正 webhook metadata/查詢邏輯（觸及付款，需用戶批准）
+
+### ISSUE-015 [OPEN][P2] Course.Students 內容混亂（2026-11-12 發現）
+- 同一欄位混存 userId（handle-payment-success push）同 user.name（addStudentToAllCourses push）；而 `Get_User_Courses` API 用 `userName` 搜尋 → 部分已購課程唔會顯示喺「我的課程」
+- 修復方向：統一 push userId，或改用 Order/GroupMember 做權威來源
+
+### ISSUE-016 [OPEN][P3] PayMe 訂單付款時間偏差（2026-11-12 發現）
+- PayMe 流程先建 PENDING Order 後付款，`Order.createdAt` 係建立時間而唔係付款時間；Admin 課程狀態頁嘅「7 日新學生」窗口對 PayMe 訂單會有偏差
+- 修復方向：PayMe callback 成功時以當時時間為準（如新增可選欄位或改寫 updatedAt 判定）
+
 ---
 
 ## 新問題登記格式

@@ -3,7 +3,7 @@
 > 香港培訓機構「宏業教育中心 InnoTrendEDU（ITE）」官方網站的路由總覽。
 > 最後整理日期：2026-11-12
 >
-> - 頁面（page.tsx）共 **102** 個，API 路由（route.ts）共 **62** 條。
+> - 頁面（page.tsx）共 **105** 個，API 路由（route.ts）共 **65** 條。
 > - Next.js App Router 的 route group 括號（`(admin)`、`(user)`、`(teacher)`、`(hide)`）**不會**出現在 URL 中。
 > - 動態路徑參數說明：`[userId]` = 學員 ID、`[Teacherid]` = 教師 ID、`[id]`/`[courseId]`/`[ProductId]` 等 = 各實體資料庫 ID。
 > - ⚠️ 標記表示該路由沒有做 session / 角色（role）檢查，任何人都可直接呼叫。
@@ -57,6 +57,8 @@
 | `/user/[userId]/Accounts` | 帳目頁，僅 fetch `/api/Accounts/Get_Accounts_Lists` 並印出 console.log，畫面只顯示「AccountsListsPage」文字，屬明顯未完成的佔位頁。 |
 | `/user/[userId]/CertificateList` | 我的證書頁，含登入與本人身分檢查，fetch `/api/user/${userId}/certificates` 後以卡片列表顯示證書名稱與發證日期，無其他互動功能。 |
 | `/user/[userId]/order-confirmation/[orderId]` | 訂單確認頁，目前只渲染「OrderConfirmationPage」文字，屬佔位頁；以 db.order.findUnique 查詢訂單及顯示明細的完整邏輯整段被註解，尚未實作。 |
+| `/user/[userId]/orders` | 學員購買記錄頁（2026-11 新增）：訂單式列表，顯示購買日期、訂單編號、總額、付款狀態，可展開睇每堂課嘅課程明細（老師/地點/日期/時間）並連結課程詳情；支援搜尋、狀態篩選、分頁。資料來自 `/api/Orders/Get_Orders_by_User/[id]`。 |
+| `/user/[userId]/orders/[orderId]` | 訂單詳情頁（2026-11 新增）：顯示訂單編號、購買日期、交易參考、狀態、總額及各項商品嘅購買價與課程資料（學校/課室/老師/上課日期/時間段）；此路由令付款成功頁原本失效嘅「查看訂單詳情」連結復活。 |
 
 ---
 
@@ -102,6 +104,7 @@
 
 | URL | 用途說明 |
 |---|---|
+| `/admin/CourseStatus` | 全課程狀態頁（2026-11 新增）：表格列出普通 + 特別課程嘅時間、地點、老師、學生數（已付款/名單/上限）、價錢（多商品顯示範圍）、上課/下課時間、課程狀態（未開始/進行中/已完結）；7 日內付款嘅新學生有綠色標記，可展開睇學生名單（首次/最近付款）及商品價格明細；支援搜尋、類型/狀態篩選、只看有新生/已滿、分頁。資料來自 `/api/Admin/Get_Course_Status`（ADMIN only）。 |
 | `/admin/ProductLists` | 產品管理：分「產品/特別產品/垃圾桶」三個 Tab，支援關鍵字搜尋、類型/狀態多選篩選、價格排序，卡片可移至垃圾桶、還原、永久刪除（課程有學生時禁止）並有確認對話框。 |
 | `/admin/ProductLists/CreateProduct` | 建立產品頁，掛載 Create_Product_Form。 |
 | `/admin/ProductLists/[ProductId]` | 產品詳情：顯示標題、描述、參考文章（網址自動連結化）、價格/實際價格、公開狀態、類別、時間與圖片，並連往編輯頁。 |
@@ -189,6 +192,8 @@
 | GET | `/api/paymentMethods` | 取得全部付款方式價格（PaymentMethods_price）並回傳。 | 無 |
 | GET | `/api/cart_success` | 以 auth() 取得登入 session 後呼叫 getCart()，回傳目前購物車的 id（未登入回 401、無購物車回 404）。 | 有（需登入 session） |
 | GET | `/api/Cart/Get_Cart_Items_by_UserId/[id]` | 依路徑 id 查詢 user 並 include Cart，回傳該用戶與其購物車資料（找不到回 404）。 | 無 |
+| GET | `/api/Orders/Get_Orders_by_User/[id]` | 2026-11 新增：依路徑 id 回傳該用戶全部訂單（含 OrderItem、Product、關聯 Course/specialCourse 摘要：時間/地點/老師），依購買日期倒序。 | 有（本人或 ADMIN；UUID 驗證） |
+| GET | `/api/Orders/Get_Order_by_Id/[orderId]` | 2026-11 新增：回傳單一訂單完整詳情（含課程 description、交易參考 paymentId）。 | 有（訂單本人或 ADMIN；404/403 分開） |
 
 ### 商品（Product）
 
@@ -216,6 +221,7 @@
 | GET | `/api/SpecialCourse/Get_SpecialCourse_by_ID/[id]` | 依路徑 id 查詢單一特殊課程（含時間段），加上 no-store 標頭停用快取後回傳。 | 無 |
 | POST | `/api/SpecialCourse/Create_SpecialCourse` | 接收 multipart 表單（課程欄位、時間段 JSON、images 等），上傳圖片至 OSS 並以交易建立 specialCourse 與時間段，回傳新課程資料。 | 無 |
 | POST | `/api/delete/delete-teaching-material` | 接收 materialId，刪除對應 OSS 教材檔案與 courseModul 記錄，回傳成功訊息。 | 有（TEACHER/ADMIN，且為教材擁有者或 ADMIN） |
+| GET | `/api/Admin/Get_Course_Status` | 2026-11 新增：全課程狀態聚合。一次過查 Course + specialCourse + 已付款 OrderItem，JS 聚合出每課程嘅學生（首/最近付款時間、7 日內新學生標記）、價錢（多商品範圍）、課程狀態、已滿旗標；回傳 meta 統計。 | 有（ADMIN only） |
 
 ### 課程資料字典（ERB / NITTP / Homemade / Holiday）
 
