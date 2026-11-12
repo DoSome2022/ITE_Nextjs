@@ -24,17 +24,15 @@
 
 ## P0 — 安全（最優先）
 
-- [ ] **API 授權補齊**：為所有 `/api/*` route 加上 session／role 檢查
-  - 重點路由：
-    - `GET /api/user/Get_User_Lists`（現回傳所有用戶含密碼欄位）
-    - `GET /api/user/Export_Users`（任何人可下載全部用戶 CSV）
-    - `POST /api/user/Import_Users`（預設密碼 `default123`）
-    - `DELETE /api/product/delete/[id]`
-  - 做法：建立統一 `requireAuth(role)` / `requireRole([...])` helper，於 route handler 入口呼叫
-  - 禁止：直接改 DB schema、刪除現有資料
+- [x] **API 授權補齊**（2026-11-12 完成）：30 條 API 已接入 `lib/auth-guard.ts` 統一授權
+  - ADMIN only（20 條）：user CRUD/匯入匯出/Get_User_Lists/Get_Teachers_With_Course/teacherLists、product 刪除/垃圾桶/還原、contact-admin/contact/[id]、Accounts/Invoice/Receipt 全表、SpecialCourse 建立
+  - TEACHER 本人或 ADMIN（6 條）：attendance×2、teacher CourseLists、Get_Courses_By_Teacher、upload（限自己 TeacherId）、Get_CourseModul_Lists/by_Id、Holiday lists
+  - 本人或 ADMIN（4 條）：Get_User_Lists_by_Id、Accounts_by_User、Cart_Items、Holiday_by_Id
+  - 保持公開：讀取類 GET、聯絡/投訴表單 POST（用戶確認）
+  - 金流 API 按用戶決定「唔郁」：CheckoutSessions、payme、handle-payment-success、stripe webhook
 - [ ] **密碼雜湊修正**：`PUT /api/user/Edit_Users/[id]` 密碼未經 bcrypt 即寫入
   - 修改時必須兼容舊有已存密碼（不可要求重設全部用戶）
-- [ ] **敏感欄位過濾**：所有回傳 User 的 API 一律 exclude `password`
+- [x] **敏感欄位過濾**（2026-11-12 完成）：所有回傳 User 嘅 API 已 exclude `password`（Get_User_Lists、Get_User_Lists_by_Id、Holiday lists、Cart items；其餘用 select 嘅 API 本身冇密碼欄位）
 
 ## P1 — Bug 與功能錯誤
 

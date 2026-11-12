@@ -1,8 +1,15 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { requireLogin, requireRoles } from "@/lib/auth-guard";
+import { UserRole } from "@prisma/client";
 
 export async function GET(req: Request) {
   try {
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbidden = requireRoles(session!, [UserRole.ADMIN]);
+    if (forbidden) return forbidden;
+
     const url = new URL(req.url);
     const status = url.searchParams.get("status"); // 可選：過濾狀態
     const search = url.searchParams.get("search"); // 可選：搜尋關鍵字

@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Host
-Host: https://ite.edu.hk
+Host: https://inno-tech.pro
 
 # Sitemaps
-Sitemap: https://ite.edu.hk/sitemap.xml
+Sitemap: https://inno-tech.pro/sitemap.xml

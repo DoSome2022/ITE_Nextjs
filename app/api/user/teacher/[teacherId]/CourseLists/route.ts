@@ -2,12 +2,22 @@
 
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { forbidden, requireLogin, requireRoles } from "@/lib/auth-guard";
+import { UserRole } from "@prisma/client";
 
 export async function GET(req: Request, { params }: { params: Promise<{ teacherId: string }> }) {
   console.log(" is server")
 
   try {
     const { teacherId } = await params; // 從 params 取得 teacherId
+
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbiddenRole = requireRoles(session!, [UserRole.TEACHER, UserRole.ADMIN]);
+    if (forbiddenRole) return forbiddenRole;
+    if (session!.user.role === UserRole.TEACHER && teacherId !== session!.user.id) {
+      return forbidden("無權操作：教師只能查看自己的課程");
+    }
 
     // 驗證 teacherId 是否有效
     const teacherExists = await db.user.findUnique({

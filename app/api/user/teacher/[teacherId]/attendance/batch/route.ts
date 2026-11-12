@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { forbidden, requireLogin, requireRoles } from "@/lib/auth-guard";
+import { UserRole } from "@prisma/client";
 
 // POST: 批次查詢多個課程日期的出席狀態
 export async function POST(req: Request) {
@@ -12,6 +14,14 @@ export async function POST(req: Request) {
         { error: "缺少必要參數" },
         { status: 400 }
       );
+    }
+
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbiddenRole = requireRoles(session!, [UserRole.TEACHER, UserRole.ADMIN]);
+    if (forbiddenRole) return forbiddenRole;
+    if (session!.user.role === UserRole.TEACHER && teacherId !== session!.user.id) {
+      return forbidden("無權操作：教師只能查詢自己的出席記錄");
     }
 
     // 批次查詢

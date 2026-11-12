@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import OSS from "ali-oss";
 import { randomUUID } from "crypto";
 import { z } from "zod";
+import { requireLogin, requireRoles } from "@/lib/auth-guard";
+import { UserRole } from "@prisma/client";
 
 const ossClient = new OSS({
   region: process.env.OSS_REGION!,
@@ -36,6 +38,11 @@ const TimeRangeSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbidden = requireRoles(session!, [UserRole.ADMIN]);
+    if (forbidden) return forbidden;
+
     const formData = await req.formData();
 
     const getString = (key: string): string => {

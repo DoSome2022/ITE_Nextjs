@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { forbidden, requireLogin, requireRoles } from "@/lib/auth-guard";
+import { UserRole } from "@prisma/client";
 
 // GET: 取得某個老師在某堂課的出席記錄
 export async function GET(req: Request) {
@@ -14,6 +16,14 @@ export async function GET(req: Request) {
         { error: "缺少必要參數" },
         { status: 400 }
       );
+    }
+
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbiddenRole = requireRoles(session!, [UserRole.TEACHER, UserRole.ADMIN]);
+    if (forbiddenRole) return forbiddenRole;
+    if (session!.user.role === UserRole.TEACHER && teacherId !== session!.user.id) {
+      return forbidden("無權操作：教師只能查看自己的出席記錄");
     }
 
     const attendance = await db.attendance.findUnique({
@@ -44,6 +54,14 @@ export async function POST(req: Request) {
         { error: "缺少必要參數" },
         { status: 400 }
       );
+    }
+
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbiddenRole = requireRoles(session!, [UserRole.TEACHER, UserRole.ADMIN]);
+    if (forbiddenRole) return forbiddenRole;
+    if (session!.user.role === UserRole.TEACHER && teacherId !== session!.user.id) {
+      return forbidden("無權操作：教師只能標記自己的出席記錄");
     }
 
     const courseDate = new Date(date);

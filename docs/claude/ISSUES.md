@@ -15,15 +15,11 @@
 
 ## 問題列表
 
-### ISSUE-001 [OPEN][P0] API 授權不完整
+### ISSUE-001 [RESOLVED][P0] API 授權不完整（2026-11-12 修復）
 - 描述：超過一半 `/api/*` 無 session／role 檢查
-- 舉例：
-  - `GET /api/user/Get_User_Lists` 回傳所有用戶含密碼
-  - `GET /api/user/Export_Users` 任何人可下載全部用戶 CSV
-  - `DELETE /api/product/delete/[id]` 無檢查
-  - `POST /api/user/Import_Users` 預設密碼 `default123`
-- 影響：資料外洩、越權操作
-- 修復方向：統一 auth guard（見 TASK P0）
+- 修復：30 條 API 接入 `lib/auth-guard.ts` 統一授權（ADMIN only / TEACHER 本人或 ADMIN / 本人或 ADMIN）；Get_User_Lists、Get_User_Lists_by_Id、Holiday、Cart 等回傳 User 嘅 API exclude password
+- 例外（用戶決定「金流唔郁」）：`POST /api/CheckoutSessions`、`POST /api/payme/create`、`POST /api/payme/callback`、`POST /api/handle-payment-success`（已有 userId 一致檢查）、`POST /api/webhooks/stripe`（有 Stripe 簽章驗證）
+- 驗證：build 通過；越權 401/403 實測待部署前做
 
 ### ISSUE-002 [OPEN][P2] 重複路由
 - `Edit_User` vs `Edit_Users`

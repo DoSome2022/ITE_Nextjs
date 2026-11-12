@@ -12,9 +12,16 @@
 // /api/Course/Get_CourseModul_Lists/route.ts
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { requireLogin, requireRoles } from "@/lib/auth-guard";
+import { UserRole } from "@prisma/client";
 
 export async function GET() {
   try {
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbidden = requireRoles(session!, [UserRole.TEACHER, UserRole.ADMIN]);
+    if (forbidden) return forbidden;
+
     const courseModuls = await db.courseModul.findMany({
       include: {
         Courses: true,

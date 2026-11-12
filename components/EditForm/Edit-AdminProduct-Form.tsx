@@ -282,6 +282,26 @@ const EditProductPage = () => {
               )}
             />
             
+                        {/* 折扣欄位 */}
+            <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>折扣(%)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="輸入折扣"
+                      className="w-full p-2 rounded-md bg-gray-800 border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      min="0"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
             {/* 實際價格欄位 */}
             <FormField
               control={form.control}

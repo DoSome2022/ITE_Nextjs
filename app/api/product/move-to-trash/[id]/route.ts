@@ -1,10 +1,17 @@
 // app/api/product/move-to-trash/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { requireLogin, requireRoles } from '@/lib/auth-guard';
+import { UserRole } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export async function PATCH(request: NextRequest) {
+  const { session, response } = await requireLogin();
+  if (response) return response;
+  const forbidden = requireRoles(session!, [UserRole.ADMIN]);
+  if (forbidden) return forbidden;
+
   const id = request.nextUrl.pathname.split('/').pop();
 
   if (!id) {

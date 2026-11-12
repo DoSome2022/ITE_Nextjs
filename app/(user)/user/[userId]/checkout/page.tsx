@@ -1,3 +1,4 @@
+// app/(user)/user/[userId]/checkout/page.tsx
 "use client";
 
 import { useEffect, useState, useTransition } from 'react';
@@ -161,7 +162,7 @@ export default function CheckoutPage() {
       setError(null);
       try {
         // ⭐ 傳送選擇的支付方式到 API
-        const response = await axios.post('/api/checkout', {
+        const response = await axios.post('/api/CheckoutSessions', {
           items,
           userId,
           paymentMethod, // ← 傳送支付方式

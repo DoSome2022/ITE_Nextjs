@@ -1,5 +1,5 @@
 
-import { Smartphone, Phone, MapPinCheck, Mail } from 'lucide-react';
+import { Smartphone, Phone, MapPinCheck, Mail, CalendarClock } from 'lucide-react';
 
 
 export default function ITEGoogleMap() {
@@ -24,6 +24,7 @@ export default function ITEGoogleMap() {
                 <li className='flex'><Smartphone size={24} /><span className='ml-2'>5100 1888</span></li>
                 <li className='flex'><Phone size={24} /><span className='ml-2'>3163 9569</span></li>
                 <li className='flex'><MapPinCheck size={24} /><span className='ml-2'>Flat B, 7/F, Sun Shine Centre, 61-63 Portland Street, Yau Ma Tei, Kln.</span></li>
+                <li className='flex'><CalendarClock size={24} /><span className='ml-2'>Mon to Sat 9:00-18:00</span></li>
               </ul>
             </div>
           </div>

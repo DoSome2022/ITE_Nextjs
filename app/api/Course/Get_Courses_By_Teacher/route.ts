@@ -1,6 +1,8 @@
 // /app/api/Course/Get_Courses_By_Teacher/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { forbidden, requireLogin, requireRoles } from "@/lib/auth-guard";
+import { UserRole } from "@prisma/client";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,6 +15,14 @@ export async function GET(request: Request) {
   }
 
   try {
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbiddenRole = requireRoles(session!, [UserRole.TEACHER, UserRole.ADMIN]);
+    if (forbiddenRole) return forbiddenRole;
+    if (session!.user.role === UserRole.TEACHER && teacherId !== session!.user.id) {
+      return forbidden("無權操作：教師只能查詢自己的課程");
+    }
+
     const courses = await prisma.course.findMany({
       where: {
         teacherId,

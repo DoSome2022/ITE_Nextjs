@@ -4,9 +4,15 @@ import { CreateUserSchema } from "@/app/actions/Create/Create_user/schema";
 import { db } from "@/lib/db";
 import { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { requireLogin, requireRoles } from "@/lib/auth-guard";
 
 export async function POST(req: Request) {
   try {
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbidden = requireRoles(session!, [UserRole.ADMIN]);
+    if (forbidden) return forbidden;
+
     const body = await req.json();
     const parsedData = CreateUserSchema.safeParse(body);
 

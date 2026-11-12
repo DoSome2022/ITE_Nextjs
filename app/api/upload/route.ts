@@ -2,15 +2,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import OSS from "ali-oss";
 import { CreateCourseModulAction } from "@/app/actions/Create/Create_CourseModul";
+import { forbidden, requireLogin, requireRoles } from "@/lib/auth-guard";
+import { UserRole } from "@prisma/client";
 
 export async function POST(request: NextRequest) {
   try {
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbiddenRole = requireRoles(session!, [UserRole.TEACHER, UserRole.ADMIN]);
+    if (forbiddenRole) return forbiddenRole;
+
     const formData = await request.formData();
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
     const TeacherId = formData.get("TeacherId") as string;
     const originalFileName = formData.get("originalFileName") as string;
     const file = formData.get("file") as File;
+
+    // 教師只能以自己的 TeacherId 上傳教材
+    if (session!.user.role === UserRole.TEACHER && TeacherId !== session!.user.id) {
+      return forbidden("無權操作：教師只能上傳自己的教材");
+    }
 
     let teaching_materials = "";
     if (file) {
