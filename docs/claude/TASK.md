@@ -67,6 +67,15 @@
 - [ ] 重寫 `README.md` 為正式說明文件（現為粵語開發日誌，保留原文另存 `DEVLOG.md`）
 - [ ] PayMe 殘留程式碼：確認是否保留備用，若保留則加註說明
 
+## 已完成（2026-11-12）
+
+- [x] **學員購買記錄頁 + Admin 全課程狀態頁**（用戶需求，2026-11-12 完成）
+  - 學員：`/user/[userId]/orders`（訂單式列表，可展開課程明細）+ `/user/[userId]/orders/[orderId]`（訂單詳情，復活 success 頁失效連結）
+  - Admin：`/admin/CourseStatus`（全課程狀態表格：時間/地點/老師/學生數/價錢/上下課時間/新學生標記）
+  - 新 API 3 條：`/api/Orders/Get_Orders_by_User/[id]`、`/api/Orders/Get_Order_by_Id/[orderId]`、`/api/Admin/Get_Course_Status`（全部有授權檢查）
+  - 「新學生」= 以 Order.createdAt 計 7 日內首次付款；**冇改 DB schema、冇跑 migration**
+  - 驗證：`npm run build` 通過（Node 20）；發現嘅資料不一致問題寫入 ISSUES-013~016
+
 ---
 
 ## 任務登記格式（Claude 新增任務時使用）

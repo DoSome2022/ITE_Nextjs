@@ -33,6 +33,25 @@ npm run build（結果）
 ## 記錄
 
 ### [2026-11-12] 完成
+- 任務：學員購買記錄頁 + Admin 全課程狀態頁（用戶需求新功能）
+- 操作者：Claude
+- 改動檔案：
+  - `lib/order-status.ts`（新增：訂單狀態正規化 helper）
+  - `app/api/Orders/Get_Orders_by_User/[id]/route.ts`、`app/api/Orders/Get_Order_by_Id/[orderId]/route.ts`（新增：學員訂單 API，本人或 ADMIN）
+  - `app/api/Admin/Get_Course_Status/route.ts`（新增：全課程狀態聚合，ADMIN only，3 查詢並行 + JS 聚合）
+  - `app/(user)/user/[userId]/orders/page.tsx`、`app/(user)/user/[userId]/orders/[orderId]/page.tsx`（新增頁面）
+  - `app/(admin)/admin/CourseStatus/page.tsx`（新增：狀態表格 + 篩選 + 展開名單）
+  - `components/Navbar.tsx`（userNavItems 加「購買記錄」、adminNavItems 加「課程狀態」）
+  - `app/(user)/user/[userId]/page.tsx`（Dashboard 加「查看購買記錄」連結）
+  - `docs/claude/URL_DOCUMENTATION.md`、`TASK.md`、`LOG.md`、`ISSUES.md`（更新）
+- 指令執行：`npm run build`（✅ 通過；本機需 Node ≥ 20 + 補裝 `@next/swc-darwin-arm64`）
+- 驗證：
+  - [x] build 通過（含 TS type check），新 6 條路由確認喺 build output
+  - [x] 冇改 prisma/schema.prisma、冇 migration、冇動 DB
+- 遺留：新 API 越權/未登入測試需上線前用真實帳號走一次（本機未有 DB 連線驗證）
+- 關聯 Issue：ISSUE-013 ~ ISSUE-016
+
+### [2026-11-12] 完成
 - 任務：文檔整理（用戶要求，非 TASK 編號任務）
 - 操作者：Claude
 - 改動檔案：

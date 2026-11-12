@@ -281,6 +281,12 @@ async function fetchAccountsData() {
           >
             查看我的課程
           </Link>
+          <Link
+            href={`/user/${userId}/orders`}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition"
+          >
+            查看購買記錄
+          </Link>
         </div>
       </div>
     </div>

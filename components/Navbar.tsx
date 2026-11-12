@@ -257,6 +257,7 @@ export default function Navbar() {
   const adminNavItems = [
     { name: "帳目", engname: "", href: "/admin/Accounts" },
     { name: "課程列表", engname: "", href: "/admin/CourseLists" },
+    { name: "課程狀態", engname: "", href: "/admin/CourseStatus" },
     { name: "產品列表", engname: "", href: "/admin/ProductLists" },
     { name: "教師列表", engname: "", href: "/admin/TeacherLists" },
     { name: "使用者列表", engname: "", href: "/admin/UserLists" },
@@ -266,6 +267,7 @@ export default function Navbar() {
     { name: "AdminLOG", engname: "", href: "/admin/AdminLog" },
     { name: "特別程程列表", engname: "", href: "/admin/SpecialCourseLists" },
     { name: "POST列表", engname: "", href: "/admin/PostLists" },
+    { name: "訊息列表", engname: "", href: "/admin/ContactMessages" },
   ];
 
   const teacherNavItems = teacherId
@@ -283,6 +285,7 @@ export default function Navbar() {
         { name: "課程", engname: "", href: `/user/${userId}/shop` },
         // { name: "日曆", href: `/user/${userId}/Calendar` },
         { name: "課程列表", engname: "", href: `/user/${userId}/CourseLists` },
+        { name: "購買記錄", engname: "", href: `/user/${userId}/orders` },
         { name: "心儀課程", engname: "", href: `/user/${userId}/cart` },
       ]
     : [];
