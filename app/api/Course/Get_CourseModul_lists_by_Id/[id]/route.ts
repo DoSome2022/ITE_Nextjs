@@ -1,9 +1,17 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { requireLogin, requireRoles } from "@/lib/auth-guard";
+import { UserRole } from "@prisma/client";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params; // 等待 params Promise 解析
+
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbidden = requireRoles(session!, [UserRole.TEACHER, UserRole.ADMIN]);
+    if (forbidden) return forbidden;
+
 
     const res = await db.courseModul.findUnique({
       where: {

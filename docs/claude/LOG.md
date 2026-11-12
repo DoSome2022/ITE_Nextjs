@@ -33,6 +33,26 @@ npm run build（結果）
 ## 記錄
 
 ### [2026-11-12] 完成
+- 任務：TASK P0-01 API 授權補齊 + P0-03 敏感欄位過濾
+- 操作者：Claude
+- 改動檔案：
+  - `lib/auth-guard.ts`（新增：requireLogin / requireRoles / requireSelfOrAdmin / isValidUuid / userSafeSelect 統一 helper）
+  - 30 條 API route 接入授權（ADMIN only ×20、TEACHER 本人或 ADMIN ×6、本人或 ADMIN ×4，詳見 TASK.md）
+  - `docs/claude/URL_DOCUMENTATION.md`（權限檢查欄全數更新）、`TASK.md`（P0-01/P0-03 標 [x]）、`ISSUES.md`（ISSUE-001 → RESOLVED）、`LOG.md`
+- 指令執行：`npx prisma generate`（修復 darwin-arm64 Query Engine）+ `npm run build`（✅ 通過，0 錯誤）
+- 驗證：
+  - [x] build 通過（含 TS type check）
+  - [x] grep 確認冇 API 喺 response 洩漏 password
+  - [ ] 越權 401/403 實測（需真實 DB/登入環境，建議部署前用三角色各走一次）
+- 遺留：金流 API（CheckoutSessions/payme/handle-payment-success/stripe webhook）按用戶決定「唔郁」；Edit_Users 密碼明文寫入係 P0-02 任務，需用戶確認兼容方式後處理
+- 關聯 Issue：ISSUE-001（已 RESOLVED）
+
+### [2026-11-12] 開始
+- 任務：TASK P0-01 API 授權補齊（範圍已同用戶確認：讀取類公開、金流唔郁、教師專屬 TEACHER/ADMIN、管理操作 ADMIN）
+- 操作者：Claude
+- 計劃：建 `lib/auth-guard.ts` 統一 helper，分三批接入：① 用戶管理/管理操作類（ADMIN）② 教師專屬類（TEACHER/ADMIN）③ 個人資料類（本人或 ADMIN + exclude password）
+
+### [2026-11-12] 完成
 - 任務：學員購買記錄頁 + Admin 全課程狀態頁（用戶需求新功能）
 - 操作者：Claude
 - 改動檔案：

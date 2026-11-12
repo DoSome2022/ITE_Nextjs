@@ -191,7 +191,7 @@
 | POST | `/api/payme/callback` | 接收 paymentId、status，依 paymentId 找到訂單並更新為 paid/failed，回傳 acknowledged。 | 無（未驗證簽名或來源） |
 | GET | `/api/paymentMethods` | 取得全部付款方式價格（PaymentMethods_price）並回傳。 | 無 |
 | GET | `/api/cart_success` | 以 auth() 取得登入 session 後呼叫 getCart()，回傳目前購物車的 id（未登入回 401、無購物車回 404）。 | 有（需登入 session） |
-| GET | `/api/Cart/Get_Cart_Items_by_UserId/[id]` | 依路徑 id 查詢 user 並 include Cart，回傳該用戶與其購物車資料（找不到回 404）。 | 無 |
+| GET | `/api/Cart/Get_Cart_Items_by_UserId/[id]` | 依路徑 id 查詢 user 並 include Cart（exclude password），回傳該用戶與其購物車資料（找不到回 404）。 | 有（本人或 ADMIN） |
 | GET | `/api/Orders/Get_Orders_by_User/[id]` | 2026-11 新增：依路徑 id 回傳該用戶全部訂單（含 OrderItem、Product、關聯 Course/specialCourse 摘要：時間/地點/老師），依購買日期倒序。 | 有（本人或 ADMIN；UUID 驗證） |
 | GET | `/api/Orders/Get_Order_by_Id/[orderId]` | 2026-11 新增：回傳單一訂單完整詳情（含課程 description、交易參考 paymentId）。 | 有（訂單本人或 ADMIN；404/403 分開） |
 
@@ -202,9 +202,9 @@
 | GET | `/api/product/Get_Product_Lists` | 取得全部產品（含課程、圖片、影片、特殊課程），並將類型/狀態 ID 陣列轉成名稱陣列後回傳。 | 無 |
 | GET | `/api/product/Get_Product_Lists_by_ID/[id]` | 依路徑 id 查詢單一產品並 include Course（含時間段）、圖片、影片，回傳商品資料（找不到回 404）。 | 無 |
 | GET | `/api/product/openinganswer` | 以 db.product.findMany() 直接取得全部產品（無任何篩選）並回傳。 | 無 |
-| DELETE | `/api/product/delete/[id]` | 依路徑 id 以交易硬刪除產品及其購物車項目、訂單項目、時間段、課程日期、圖片、影片，回傳刪除結果。 | 無 |
-| PATCH | `/api/product/move-to-trash/[id]` | 依路徑 id 將產品設為 isTrash=true、IsPublic=false（移到垃圾桶），回傳更新後產品。 | 無 |
-| PATCH | `/api/product/restore-from-trash/[id]` | 檢查產品在垃圾桶後設回 isTrash=false、IsPublic=false，回傳還原後產品。 | 無 |
+| DELETE | `/api/product/delete/[id]` | 依路徑 id 以交易硬刪除產品及其購物車項目、訂單項目、時間段、課程日期、圖片、影片，回傳刪除結果。 | 有（ADMIN only） |
+| PATCH | `/api/product/move-to-trash/[id]` | 依路徑 id 將產品設為 isTrash=true、IsPublic=false（移到垃圾桶），回傳更新後產品。 | 有（ADMIN only） |
+| PATCH | `/api/product/restore-from-trash/[id]` | 檢查產品在垃圾桶後設回 isTrash=false、IsPublic=false，回傳還原後產品。 | 有（ADMIN only） |
 
 ### 課程（Course / SpecialCourse / 教材）
 
@@ -212,14 +212,14 @@
 |---|---|---|---|
 | GET | `/api/Course/Get_Course_Lists` | 接收 typeId、page、pageSize 查詢參數取得課程列表（含時間段、依 createdAt 降冪），設定長效快取標頭後回傳。 | 無 |
 | GET | `/api/Course/Get_Course_Lists_by_Id/[id]` | 依路徑 id 查詢單一課程並 include CourseTimeRanges，回傳課程資料（找不到回 404）。 | 無 |
-| GET | `/api/Course/Get_CourseModul_Lists` | 取得全部課程模組（含 Courses、Teacher）並回傳。 | 無 |
-| GET | `/api/Course/Get_CourseModul_lists_by_Id/[id]` | 依路徑 id 查詢單一課程模組並 include Courses，回傳模組資料（找不到回 404）。 | 無 |
-| GET | `/api/Course/Get_Courses_By_Teacher` | 接收 teacherId、year、month 查詢參數，回傳該教師在指定年份月份的課程（含過濾後的 Coursedates 與時間段）。 | 無 |
+| GET | `/api/Course/Get_CourseModul_Lists` | 取得全部課程模組（含 Courses、Teacher）並回傳。 | 有（TEACHER/ADMIN） |
+| GET | `/api/Course/Get_CourseModul_lists_by_Id/[id]` | 依路徑 id 查詢單一課程模組並 include Courses，回傳模組資料（找不到回 404）。 | 有（TEACHER/ADMIN） |
+| GET | `/api/Course/Get_Courses_By_Teacher` | 接收 teacherId、year、month 查詢參數，回傳該教師在指定年份月份的課程（含過濾後的 Coursedates 與時間段）。 | 有（TEACHER 本人或 ADMIN） |
 | PATCH | `/api/Course/Update_Course/[id]` | 接收經 Zod 驗證的課程更新欄位（日期、時間段、課室、人數上限等），以交易更新課程並重建時間段，回傳更新後課程。 | 有（需為該課教師或 ADMIN） |
 | PATCH | `/api/Course/Update_SpecialCourse/[id]` | 接收經 Zod 驗證的特殊課程更新欄位，以交易更新 specialCourse 並重建時間段，回傳更新後課程。 | 有（需為該課教師或 ADMIN） |
 | GET | `/api/SpecialCourse/SpecialCourse_Lists` | 取得全部特殊課程（含學生清單與時間段）並回傳。 | 無 |
 | GET | `/api/SpecialCourse/Get_SpecialCourse_by_ID/[id]` | 依路徑 id 查詢單一特殊課程（含時間段），加上 no-store 標頭停用快取後回傳。 | 無 |
-| POST | `/api/SpecialCourse/Create_SpecialCourse` | 接收 multipart 表單（課程欄位、時間段 JSON、images 等），上傳圖片至 OSS 並以交易建立 specialCourse 與時間段，回傳新課程資料。 | 無 |
+| POST | `/api/SpecialCourse/Create_SpecialCourse` | 接收 multipart 表單（課程欄位、時間段 JSON、images 等），上傳圖片至 OSS 並以交易建立 specialCourse 與時間段，回傳新課程資料。 | 有（ADMIN only） |
 | POST | `/api/delete/delete-teaching-material` | 接收 materialId，刪除對應 OSS 教材檔案與 courseModul 記錄，回傳成功訊息。 | 有（TEACHER/ADMIN，且為教材擁有者或 ADMIN） |
 | GET | `/api/Admin/Get_Course_Status` | 2026-11 新增：全課程狀態聚合。一次過查 Course + specialCourse + 已付款 OrderItem，JS 聚合出每課程嘅學生（首/最近付款時間、7 日內新學生標記）、價錢（多商品範圍）、課程狀態、已滿旗標；回傳 meta 統計。 | 有（ADMIN only） |
 
@@ -230,8 +230,8 @@
 | GET | `/api/ERB/Get_ERB_Lists` | 取得全部 ERB 記錄並回傳。 | 無 |
 | GET | `/api/NITTP/Get_NITTP_Lists` | 取得全部 NITTP 記錄並回傳。 | 無 |
 | GET | `/api/Homemade/Get_Homemade_Lists` | 取得全部自家製（Homemade）記錄並回傳。 | 無 |
-| GET | `/api/Holiday/Get_TeacherHoliday_Lists` | 取得全部用戶記錄並回傳（作為教師假期列表資料來源）。 | 無 |
-| GET | `/api/Holiday/Get_TeacherHoliday_Lists_by_Id/[id]` | 依路徑 id 查詢單一 user 記錄並回傳（作為教師假期資料來源）。 | 無 |
+| GET | `/api/Holiday/Get_TeacherHoliday_Lists` | 取得全部用戶記錄並回傳（作為教師假期列表資料來源；exclude password）。 | 有（TEACHER/ADMIN） |
+| GET | `/api/Holiday/Get_TeacherHoliday_Lists_by_Id/[id]` | 依路徑 id 查詢單一 user 記錄並回傳（作為教師假期資料來源；exclude password）。 | 有（本人或 ADMIN） |
 
 ### 類型 / 狀態（Type / Status / HeaderType）
 
@@ -246,57 +246,57 @@
 
 | Method(s) | URL | 用途說明 | ⚠️ 權限檢查 |
 |---|---|---|---|
-| GET | `/api/Accounts/Get_Accounts_Lists` | 取得全部帳戶記錄（Accounts）並回傳。 | 無 |
-| GET | `/api/Accounts/Get_Accounts_Lists_by_User/[id]` | 依路徑 id 以 client_id 查詢該用戶的所有帳戶記錄，回傳陣列（無資料回 404）。 | 無 |
-| GET | `/api/Invoice_Lists` | 取得全部發票記錄（Invoice）並回傳。 | 無 |
-| GET | `/api/Reaceipt_Lists` | 取得全部收據記錄（Receipt）並回傳。 | 無 |
+| GET | `/api/Accounts/Get_Accounts_Lists` | 取得全部帳戶記錄（Accounts）並回傳。 | 有（ADMIN only） |
+| GET | `/api/Accounts/Get_Accounts_Lists_by_User/[id]` | 依路徑 id 以 client_id 查詢該用戶的所有帳戶記錄，回傳陣列（無資料回 404）。 | 有（本人或 ADMIN） |
+| GET | `/api/Invoice_Lists` | 取得全部發票記錄（Invoice）並回傳。 | 有（ADMIN only） |
+| GET | `/api/Reaceipt_Lists` | 取得全部收據記錄（Receipt）並回傳。 | 有（ADMIN only） |
 
 ### 用戶管理（User）
 
 | Method(s) | URL | 用途說明 | ⚠️ 權限檢查 |
 |---|---|---|---|
-| GET | `/api/user/Get_User_Lists` | 取得全部用戶記錄（含密碼等敏感欄位）並回傳。 | 無 |
-| GET | `/api/user/Get_User_Lists_by_Id/[id]` | 依路徑 id 查詢單一用戶並 include CourseModul、specialCourse、Course，回傳用戶完整資料。 | 無 |
+| GET | `/api/user/Get_User_Lists` | 取得全部用戶記錄（exclude password 敏感欄位）並回傳。 | 有（ADMIN only） |
+| GET | `/api/user/Get_User_Lists_by_Id/[id]` | 依路徑 id 查詢單一用戶並 select CourseModul、specialCourse、Course（exclude password）。 | 有（本人或 ADMIN） |
 | GET | `/api/user/Get_User_Courses/[id]` | 依路徑 id 取得該用戶作為教師與學生的所有課程（合併去重），回傳課程陣列。 | 有（需為本人或 ADMIN） |
-| GET | `/api/user/Get_Teachers_With_Course` | 查詢角色為 TEACHER 的所有用戶（含其課程清單與 hourlyRate）並回傳。 | 無 |
-| GET | `/api/user/teacher/teacherLists` | 回傳所有用戶的 id、role、username（名為教師列表但未依 role 過濾）。 | 無 |
-| GET | `/api/user/teacher/[teacherId]/CourseLists` | 依 teacherId 確認教師存在後查詢其建立的所有課程（含 CourseModul、依建立時間降冪）並回傳。 | 無 |
-| GET | `/api/user/Export_Users` | 取得全部用戶資料轉成 CSV，以附件 users_export_日期.csv 形式回傳下載。 | 無 |
-| POST | `/api/user/create` | 接收 username、password、phone、name、role，以 Zod 驗證、檢查帳號重複並以 bcrypt 雜湊密碼建立用戶，回傳新用戶資料（201）。 | 無 |
-| POST | `/api/user/Import_Users` | 接收 CSV 檔案，解析後以 username 為鍵更新或建立用戶（新用戶預設密碼 default123），回傳成功/失敗統計與錯誤清單。 | 無 |
-| PUT | `/api/user/Edit_User/[id]` | 接收 name、phone、address、hourlyRate、username、email 並更新指定用戶資料，回傳更新後用戶。 | 無 |
-| PUT | `/api/user/Edit_Users/[id]` | 接收 username、name、email、phone、role、password、address，檢查帳號/電郵重複後更新用戶，回傳更新後用戶（密碼未雜湊即寫入）。 | 無 |
-| DELETE | `/api/user/Delete_User/[id]` | 檢查用戶存在後刪除其課程模組、特殊課程、課程、購物車、訂單，最後刪除用戶本身並回傳結果。 | 無 |
+| GET | `/api/user/Get_Teachers_With_Course` | 查詢角色為 TEACHER 的所有用戶（含其課程清單與 hourlyRate）並回傳。 | 有（ADMIN only） |
+| GET | `/api/user/teacher/teacherLists` | 回傳所有用戶的 id、role、username（名為教師列表但未依 role 過濾）。 | 有（ADMIN only） |
+| GET | `/api/user/teacher/[teacherId]/CourseLists` | 依 teacherId 確認教師存在後查詢其建立的所有課程（含 CourseModul、依建立時間降冪）並回傳。 | 有（TEACHER 本人或 ADMIN） |
+| GET | `/api/user/Export_Users` | 取得全部用戶資料轉成 CSV，以附件 users_export_日期.csv 形式回傳下載。 | 有（ADMIN only） |
+| POST | `/api/user/create` | 接收 username、password、phone、name、role，以 Zod 驗證、檢查帳號重複並以 bcrypt 雜湊密碼建立用戶，回傳新用戶資料（201）。 | 有（ADMIN only） |
+| POST | `/api/user/Import_Users` | 接收 CSV 檔案，解析後以 username 為鍵更新或建立用戶（新用戶預設密碼 default123），回傳成功/失敗統計與錯誤清單。 | 有（ADMIN only） |
+| PUT | `/api/user/Edit_User/[id]` | 接收 name、phone、address、hourlyRate、username、email 並更新指定用戶資料，回傳更新後用戶。 | 有（ADMIN only） |
+| PUT | `/api/user/Edit_Users/[id]` | 接收 username、name、email、phone、role、password、address，檢查帳號/電郵重複後更新用戶，回傳更新後用戶（密碼未雜湊即寫入，見 ISSUE-005）。 | 有（ADMIN only） |
+| DELETE | `/api/user/Delete_User/[id]` | 檢查用戶存在後刪除其課程模組、特殊課程、課程、購物車、訂單，最後刪除用戶本身並回傳結果。 | 有（ADMIN only） |
 | DELETE | `/api/user/delete/[id]` | 以交易刪除指定用戶的所有關聯資料（發票、收據、訂單、課程、群組等）後刪除用戶，回傳成功訊息。 | 有（需 ADMIN，且不可刪除自己） |
 
 ### 出席（Attendance，教師用）
 
 | Method(s) | URL | 用途說明 | ⚠️ 權限檢查 |
 |---|---|---|---|
-| GET, POST | `/api/user/teacher/[teacherId]/attendance` | GET 以 teacherId、courseId、date 查詢出席狀況；POST 接收 action=mark/unmark 以 upsert 或 delete 標記出席，回傳出席狀態與記錄。 | 無 |
-| POST | `/api/user/teacher/[teacherId]/attendance/batch` | 接收 JSON body 的 teacherId 與 dates（courseId 加 date 陣列），批次查詢出席記錄並以 Map 物件回傳。 | 無（路徑 teacherId 實際未使用） |
+| GET, POST | `/api/user/teacher/[teacherId]/attendance` | GET 以 teacherId、courseId、date 查詢出席狀況；POST 接收 action=mark/unmark 以 upsert 或 delete 標記出席，回傳出席狀態與記錄。 | 有（TEACHER 本人或 ADMIN） |
+| POST | `/api/user/teacher/[teacherId]/attendance/batch` | 接收 JSON body 的 teacherId 與 dates（courseId 加 date 陣列），批次查詢出席記錄並以 Map 物件回傳。 | 有（TEACHER 本人或 ADMIN） |
 
 ### 聯絡 / 投訴（Contact）
 
 | Method(s) | URL | 用途說明 | ⚠️ 權限檢查 |
 |---|---|---|---|
 | POST | `/api/contact` | 接收 name、phone、email、productTypes、contactType、otherType、details，驗證必填後建立狀態 PENDING 的聯絡表單，回傳訊息與 id。 | 無（公開表單） |
-| GET | `/api/contact-admin` | 接收 status、search、page、limit 查詢參數分頁篩選 contactMessage，回傳 messages 與 pagination 資訊。 | 無 |
-| GET, PUT, DELETE | `/api/contact/[id]` | GET 取得單筆聯絡表單並自動標記已讀、PUT 更新 adminReply/status、DELETE 刪除該表單，皆回傳表單或結果訊息。 | 無 |
+| GET | `/api/contact-admin` | 接收 status、search、page、limit 查詢參數分頁篩選 contactMessage，回傳 messages 與 pagination 資訊。 | 有（ADMIN only） |
+| GET, PUT, DELETE | `/api/contact/[id]` | GET 取得單筆聯絡表單並自動標記已讀、PUT 更新 adminReply/status、DELETE 刪除該表單，皆回傳表單或結果訊息。 | 有（ADMIN only） |
 | POST | `/api/send-complaint-email` | 接收 appellation、name、phone、email、address、complaintTypes、complaintOthers，驗證必填後以 Resend 寄送投訴郵件至 info@ite.edu.hk，回傳發送結果。 | 無（公開表單） |
 
 ### 檔案上傳 / OSS
 
 | Method(s) | URL | 用途說明 | ⚠️ 權限檢查 |
 |---|---|---|---|
-| POST | `/api/upload` | 接收 multipart（title、description、TeacherId、originalFileName、file），上傳教材至 OSS 後透過 CreateCourseModulAction 建立課程模組，回傳成功狀態。 | 無 |
+| POST | `/api/upload` | 接收 multipart（title、description、TeacherId、originalFileName、file），上傳教材至 OSS 後透過 CreateCourseModulAction 建立課程模組，回傳成功狀態。 | 有（TEACHER/ADMIN；教師限用自己 TeacherId） |
 | POST | `/api/oss/get-signed-url` | 接收 objectKey、fileName，產生 1 小時有效的阿里雲 OSS 簽名下載 URL 並回傳。 | 有（需 TEACHER 或 ADMIN） |
 
 ---
 
 ## 六、注意事項 ⚠️
 
-1. **API 授權不完整**：上表「權限檢查」欄顯示，大量 `/api/*` 路由（用戶列表、匯出 CSV、刪除用戶、刪除產品、建立用戶、聯絡表單管理、帳目/發票/收據等）**完全沒有 session 或角色檢查**，任何人只要知道網址即可直接呼叫。對外正式營運前應補上 API 層授權（如 middleware 檢查 + route 內 role 驗證）。
+1. **API 授權狀態（2026-11-12 已補齊大部分）**：除「讀取類公開 API」（商品/課程/分類/字典 GET、聯絡/投訴表單 POST）及用戶決定「金流唔郁」嘅 API（CheckoutSessions、payme、handle-payment-success、stripe webhook）外，其餘 API 已全部加上 session/role 檢查（統一 helper `lib/auth-guard.ts`）。「權限檢查」欄如實反映現況；金流 API 嘅授權強化留待用戶批准後處理。
 2. **重複 / 殘留路由**：
    - `DELETE /api/user/Delete_User/[id]` 與 `DELETE /api/user/delete/[id]` 功能重疊（前者無權限檢查，後者有 ADMIN 檢查）。
    - `PUT /api/user/Edit_User/[id]` 與 `PUT /api/user/Edit_Users/[id]` 功能重疊（後者密碼未經 bcrypt 雜湊即寫入，屬安全隱患）。

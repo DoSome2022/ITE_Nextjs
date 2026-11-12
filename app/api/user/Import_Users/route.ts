@@ -1,8 +1,15 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { requireLogin, requireRoles } from "@/lib/auth-guard";
+import { UserRole } from "@prisma/client";
 
 export async function POST(req: Request) {
   try {
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbidden = requireRoles(session!, [UserRole.ADMIN]);
+    if (forbidden) return forbidden;
+
     const formData = await req.formData();
     const file = formData.get("file") as File;
 

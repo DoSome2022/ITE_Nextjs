@@ -1,9 +1,16 @@
 // app/api/user/Get_Teachers_With_Course/route.ts
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireLogin, requireRoles } from '@/lib/auth-guard';
+import { UserRole } from '@prisma/client';
 
 export async function GET() {
   try {
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbidden = requireRoles(session!, [UserRole.ADMIN]);
+    if (forbidden) return forbidden;
+
     // 獲取所有 TEACHER 角色用戶及其相關課程
     const teachers = await prisma.user.findMany({
       where: {

@@ -1,11 +1,18 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { requireLogin, requireRoles } from "@/lib/auth-guard";
+import { UserRole } from "@prisma/client";
 
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { session, response } = await requireLogin();
+    if (response) return response;
+    const forbidden = requireRoles(session!, [UserRole.ADMIN]);
+    if (forbidden) return forbidden;
+
     const { id } = await params;
 
     // 1. 先檢查用戶是否存在

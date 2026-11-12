@@ -12,31 +12,6 @@ interface DashboardData {
     totalCourses: number;
     totalSpecialCourses: number;
     totalProducts: number;
-    totalOrders: number;
-    totalRevenue: number;
-    totalInvoices: number;
-    totalAccounts: number;
-  };
-  monthly: {
-    ordersThisMonth: number;
-    ordersLastMonth: number;
-    orderGrowth: number;
-    revenueThisMonth: number;
-    revenueLastMonth: number;
-    revenueGrowth: number;
-  };
-  recentOrders: Array<{
-    id: string;
-    total: number;
-    status: string;
-    createdAt: string;
-    customer: string;
-    items: string;
-  }>;
-  charts: {
-    userGrowth: Array<{ month: string; count: number }>;
-    courseDistribution: Array<{ name: string; count: number }>;
-    productStatus: Array<{ name: string; count: number }>;
   };
 }
 
@@ -71,45 +46,87 @@ const StatCard = ({ title, value, subtitle, trend, color }: {
   </div>
 );
 
-// ── 長條圖元件 ──
-const BarChart = ({ data, title, color }: {
-  data: Array<{ name: string; count: number }>;
-  title: string;
-  color: string;
-}) => {
-  const maxCount = Math.max(...data.map(d => d.count), 1);
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">{title}</h3>
-      <div className="flex items-end gap-3 h-40">
-        {data.map((item, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center gap-2">
-            <span className="text-xs font-medium text-gray-500">{item.count}</span>
-            <div
-              className="w-full rounded-t-md transition-all hover:opacity-80"
-              style={{
-                height: `${(item.count / maxCount) * 100}%`,
-                backgroundColor: color,
-                minHeight: item.count > 0 ? '8px' : '0',
-              }}
-            />
-            <span className="text-xs text-gray-400 truncate w-full text-center">{item.name}</span>
-          </div>
-        ))}
-      </div>
-    </div>
+// ── 帳目記錄（真實 Stripe 付款數據） ──
+interface AccountRecord {
+  clientName: string;
+  email: string;
+  reference: string;
+  createdAt: string;
+  country: string;
+  total: number;
+}
+
+const REAL_ACCOUNT_DATA: AccountRecord[] = [
+  {
+    clientName: "lee chi ho",
+    email: "mandyman@orientalpartners.com.hk",
+    reference: "pi_3TcIEpFZX1m8hayP1lqGLAvP",
+    createdAt: "2026/5/29 下午12:42",
+    country: "中國香港特別行政區",
+    total: 3280.0,
+  },
+  {
+    clientName: "LAU PO LING",
+    email: "hkpollyhk@yahoo.com.hk",
+    reference: "pi_3TBqGjFZX1m8hayP049EV3al",
+    createdAt: "2026/3/17 下午1:35",
+    country: "中國香港特別行政區",
+    total: 0.0,
+  },
+  {
+    clientName: "Sio Kun Ng",
+    email: "ngsiokun88@hotmail.com",
+    reference: "pi_3TB6BiFZX1m8hayP0GXQMmwX",
+    createdAt: "2026/3/15 下午12:23",
+    country: "中國香港特別行政區",
+    total: 3000.0,
+  },
+];
+
+// 依「建立時間」解析年份與月份並分組（降冪排序）
+function groupAccountsByYearMonth(accounts: AccountRecord[]) {
+  const groups = new Map<string, { year: number; month: number; items: AccountRecord[] }>();
+  for (const acc of accounts) {
+    const match = acc.createdAt.match(/^(\d{4})\/(\d{1,2})\//);
+    if (!match) continue;
+    const year = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10);
+    const key = `${year}-${month}`;
+    if (!groups.has(key)) groups.set(key, { year, month, items: [] });
+    groups.get(key)!.items.push(acc);
+  }
+  return Array.from(groups.values()).sort((a, b) =>
+    b.year !== a.year ? b.year - a.year : b.month - a.month
   );
-};
+}
+
+const formatHKD = (n: number) =>
+  `HK$${n.toLocaleString("zh-HK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+// 解析「建立時間」字串（例如 2026/5/29 下午12:42）取得年份與月份
+function parseYearMonth(createdAt: string): { year: number; month: number } | null {
+  const match = createdAt.match(/^(\d{4})\/(\d{1,2})\//);
+  if (!match) return null;
+  return { year: parseInt(match[1], 10), month: parseInt(match[2], 10) };
+}
 
 // ── 主頁面 ──
 const AdminPage = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number>(() => {
+    const years = REAL_ACCOUNT_DATA
+      .map((a) => parseYearMonth(a.createdAt)?.year)
+      .filter((y): y is number => y !== undefined);
+    return years.length > 0 ? Math.max(...years) : new Date().getFullYear();
+  });
+  const [selectedMonth, setSelectedMonth] = useState<number>(0);
 
   useEffect(() => {
     async function fetchData() {
       try {
+        setLoading(true);
         const stats = await getDashboardStats();
         if (!stats) throw new Error('無法獲取儀表板數據');
         setData(stats as DashboardData);
@@ -143,14 +160,72 @@ const AdminPage = () => {
     );
   }
 
-  const { overview, monthly, recentOrders, charts } = data;
+  const { overview } = data;
+
+  // ── 依 REAL_ACCOUNT_DATA 計算帳目（訂單、收入、總收入） ──
+  const availableYears = Array.from(
+    new Set(
+      REAL_ACCOUNT_DATA
+        .map((a) => parseYearMonth(a.createdAt)?.year)
+        .filter((y): y is number => y !== undefined)
+    )
+  ).sort((a, b) => b - a);
+
+  const yearOptions = availableYears.length > 0 ? availableYears : [selectedYear];
+
+  const filteredRecords = REAL_ACCOUNT_DATA.filter((a) => {
+    const ym = parseYearMonth(a.createdAt);
+    if (!ym) return false;
+    if (ym.year !== selectedYear) return false;
+    if (selectedMonth !== 0 && ym.month !== selectedMonth) return false;
+    return true;
+  });
+
+  const filteredOrders = filteredRecords.length;
+  const filteredRevenue = filteredRecords.reduce((s, a) => s + a.total, 0);
+  const totalRevenue = REAL_ACCOUNT_DATA.reduce((s, a) => s + a.total, 0);
+  const periodLabel = selectedMonth === 0
+    ? `${selectedYear} 年（整年）`
+    : `${selectedYear} 年 ${selectedMonth} 月`;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* 頁面標題 */}
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">管理儀表板</h1>
         <p className="text-gray-500 mt-1">系統營運總覽與統計數據</p>
+      </div>
+
+      {/* ===== 年份/月份篩選 ===== */}
+      <div className="flex flex-wrap items-center gap-4 mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-600">年份</label>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {yearOptions.map((y) => (
+              <option key={y} value={y}>{y} 年</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-600">月份</label>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value={0}>整年</option>
+            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+              <option key={m} value={m}>{m} 月</option>
+            ))}
+          </select>
+        </div>
+        <span className="text-sm text-gray-500 ml-auto">
+          顯示期間：{periodLabel}
+        </span>
       </div>
 
       {/* ===== 核心指標卡片 ===== */}
@@ -162,20 +237,23 @@ const AdminPage = () => {
           color="#3b82f6"
         />
         <StatCard
-          title="本月訂單"
-          value={monthly.ordersThisMonth}
-          subtitle={`上月 ${monthly.ordersLastMonth} 筆`}
-          trend={{ value: monthly.orderGrowth, isPositive: monthly.orderGrowth >= 0 }}
+          title="管理員人數"
+          value={overview.totalAdmins}
+          color="#f97316"
+        />
+        <StatCard
+          title="訂單"
+          value={filteredOrders}
+          subtitle={periodLabel}
           color="#8b5cf6"
         />
         <StatCard
-          title="本月收入"
-          value={`HK$${monthly.revenueThisMonth.toLocaleString()}`}
-          subtitle={`上月 HK$${monthly.revenueLastMonth.toLocaleString()}`}
-          trend={{ value: monthly.revenueGrowth, isPositive: monthly.revenueGrowth >= 0 }}
+          title="收入"
+          value={formatHKD(filteredRevenue)}
+          subtitle={periodLabel}
           color="#10b981"
         />
-        <StatCard
+        {/* <StatCard
           title="課程總數"
           value={overview.totalCourses + overview.totalSpecialCourses}
           subtitle={`一般 ${overview.totalCourses} · 特殊 ${overview.totalSpecialCourses}`}
@@ -184,131 +262,75 @@ const AdminPage = () => {
         <StatCard
           title="商品總數"
           value={overview.totalProducts}
-          subtitle={`累積訂單 ${overview.totalOrders} 筆`}
+          subtitle={`累積訂單 ${REAL_ACCOUNT_DATA.length} 筆`}
           color="#ef4444"
-        />
+        /> */}
       </div>
 
       {/* ===== 第二行：更多指標 ===== */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           title="總收入"
-          value={`HK$${overview.totalRevenue.toLocaleString()}`}
+          value={formatHKD(totalRevenue)}
+          subtitle="累計總額（不分期間）"
           color="#6366f1"
         />
-        <StatCard
-          title="發票數量"
-          value={overview.totalInvoices}
-          color="#ec4899"
-        />
-        <StatCard
-          title="帳目記錄"
-          value={overview.totalAccounts}
-          color="#14b8a6"
-        />
-        <StatCard
-          title="管理員人數"
-          value={overview.totalAdmins}
-          color="#f97316"
-        />
-      </div>
-
-      {/* ===== 圖表與最近訂單 ===== */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* 課程分布 */}
-        <BarChart
-          data={charts.courseDistribution.length > 0
-            ? charts.courseDistribution
-            : [{ name: '暫無數據', count: 0 }]
-          }
-          title="📚 課程星期分布"
-          color="#3b82f6"
-        />
-
-        {/* 產品狀態 */}
-        <BarChart
-          data={charts.productStatus.length > 0
-            ? charts.productStatus
-            : [{ name: '暫無數據', count: 0 }]
-          }
-          title="🏷️ 產品上架狀態"
-          color="#10b981"
-        />
-
         
-        {/* 用戶增長 */}
-        <BarChart
-          data={charts.userGrowth.length > 0
-            ? charts.userGrowth.reverse().map(item => ({ name: item.month, count: item.count }))
-            : [{ name: '暫無數據', count: 0 }]
-          }
-          title="👥 用戶註冊趨勢"
-          color="#8b5cf6"
-        />
-
       </div>
 
-      {/* ===== 最近訂單 ===== */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      {/* ===== 帳目記錄（分年份月份） ===== */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-semibold text-gray-700">📋 最近訂單</h3>
-          <span className="text-xs text-gray-400">最新 5 筆</span>
+          <h3 className="text-sm font-semibold text-gray-700">💰 帳目記錄</h3>
+          <span className="text-xs text-gray-400">
+            共 {REAL_ACCOUNT_DATA.length} 筆 · 合計 {formatHKD(REAL_ACCOUNT_DATA.reduce((s, a) => s + a.total, 0))}
+          </span>
         </div>
-        
-        {recentOrders.length === 0 ? (
+
+        {REAL_ACCOUNT_DATA.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
-            <p>暫無訂單記錄</p>
+            <p>暫無帳目記錄</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-2 font-medium text-gray-500">訂單編號</th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-500">客戶</th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-500">商品</th>
-                  <th className="text-right py-3 px-2 font-medium text-gray-500">金額</th>
-                  <th className="text-center py-3 px-2 font-medium text-gray-500">狀態</th>
-                  <th className="text-right py-3 px-2 font-medium text-gray-500">日期</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="py-3 px-2 font-mono text-xs text-gray-600">
-                      #{order.id.slice(0, 8)}
-                    </td>
-                    <td className="py-3 px-2 text-gray-800">{order.customer}</td>
-                    <td className="py-3 px-2 text-gray-500 max-w-[200px] truncate">
-                      {order.items}
-                    </td>
-                    <td className="py-3 px-2 text-right font-medium">
-                      HK${order.total.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-2 text-center">
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                        order.status === 'PAID' || order.status === 'COMPLETED'
-                          ? 'bg-green-50 text-green-600'
-                          : order.status === 'PENDING'
-                          ? 'bg-yellow-50 text-yellow-600'
-                          : 'bg-gray-50 text-gray-600'
-                      }`}>
-                        {order.status === 'PAID' ? '已付款'
-                          : order.status === 'PENDING' ? '待處理'
-                          : order.status === 'COMPLETED' ? '已完成'
-                          : order.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-2 text-right text-gray-400 text-xs">
-                      {new Date(order.createdAt).toLocaleDateString('zh-TW', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-6">
+            {groupAccountsByYearMonth(REAL_ACCOUNT_DATA).map((group) => (
+              <div key={`${group.year}-${group.month}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <h4 className="text-sm font-bold text-gray-800">
+                    {group.year} 年 {group.month} 月
+                  </h4>
+                  <span className="text-xs text-gray-400">
+                    {group.items.length} 筆 · 小計 {formatHKD(group.items.reduce((s, a) => s + a.total, 0))}
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-gray-50">
+                        <th className="text-left py-2 px-2 font-medium text-gray-500">客戶名稱</th>
+                        <th className="text-left py-2 px-2 font-medium text-gray-500">電子郵箱</th>
+                        <th className="text-left py-2 px-2 font-medium text-gray-500">Reference No.</th>
+                        <th className="text-left py-2 px-2 font-medium text-gray-500">建立時間</th>
+                        <th className="text-left py-2 px-2 font-medium text-gray-500">國家/地區</th>
+                        <th className="text-right py-2 px-2 font-medium text-gray-500">總消費 (HKD)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.items.map((acc) => (
+                        <tr key={acc.reference} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                          <td className="py-2 px-2 text-gray-800">{acc.clientName}</td>
+                          <td className="py-2 px-2 text-gray-500">{acc.email}</td>
+                          <td className="py-2 px-2 font-mono text-xs text-gray-600">{acc.reference}</td>
+                          <td className="py-2 px-2 text-gray-500 text-xs">{acc.createdAt}</td>
+                          <td className="py-2 px-2 text-gray-500">{acc.country}</td>
+                          <td className="py-2 px-2 text-right font-medium">{formatHKD(acc.total)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

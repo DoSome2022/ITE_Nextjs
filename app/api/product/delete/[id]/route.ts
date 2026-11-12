@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
+import { requireLogin, requireRoles } from '@/lib/auth-guard';
 
 const prisma = new PrismaClient();
 
@@ -8,6 +9,11 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { session, response } = await requireLogin();
+  if (response) return response;
+  const forbidden = requireRoles(session!, [UserRole.ADMIN]);
+  if (forbidden) return forbidden;
+
   const { id } = await params;
 
   if (!id) {
